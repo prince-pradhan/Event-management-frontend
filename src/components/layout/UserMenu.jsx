@@ -79,6 +79,15 @@ export default function UserMenu() {
           >
             Profile
           </Link>
+          {user && !user.isVerified && (
+            <Link
+              to={ROUTES.VERIFY_EMAIL}
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2.5 text-sm font-medium text-amber-700 hover:bg-amber-50"
+            >
+              Verify email
+            </Link>
+          )}
           {isAdmin && (
             <Link
               to={ROUTES.ADMIN_DASHBOARD}

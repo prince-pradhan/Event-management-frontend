@@ -1,5 +1,7 @@
-import { Link } from 'react-router-dom';
-import { ROUTES } from '../utils/constants';
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { ROUTES, USER_ROLE } from '../utils/constants';
 import Button from '../components/common/Button';
 
 const FEATURES = [
@@ -10,6 +12,25 @@ const FEATURES = [
 ];
 
 export default function Home() {
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect logged-in users to their dashboard
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === USER_ROLE.ADMIN) {
+        navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
+      } else {
+        navigate(ROUTES.STUDENT_DASHBOARD, { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  // Don't render home content if logged in (will redirect)
+  if (isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="min-h-[calc(100vh-8rem)]">
       <section className="relative overflow-hidden bg-gradient-hero text-white py-20 sm:py-28 px-4">
@@ -25,7 +46,7 @@ export default function Home() {
             <Link to={ROUTES.EVENTS}>
               <Button
                 size="lg"
-                className="min-w-[180px] bg-white text-primary-700 hover:bg-slate-100 font-bold shadow-lg hover:shadow-xl border-2 border-white"
+                className="min-w-[180px] bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-lg hover:shadow-xl border-2 border-primary-500"
               >
                 Browse events
               </Button>

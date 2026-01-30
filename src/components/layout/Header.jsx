@@ -7,19 +7,25 @@ import UserMenu from './UserMenu';
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, isAdmin } = useAuth();
 
-  const navLinks = [
+  // Only show Home/Events nav when NOT logged in
+  const navLinks = isAuthenticated ? [] : [
     { to: ROUTES.HOME, label: 'Home' },
     { to: ROUTES.EVENTS, label: 'Events' },
   ];
+
+  // Logo links to dashboard when logged in, home when not
+  const logoLink = isAuthenticated 
+    ? (isAdmin ? ROUTES.ADMIN_DASHBOARD : ROUTES.STUDENT_DASHBOARD)
+    : ROUTES.HOME;
 
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-50 shadow-soft">
       <div className="container-app">
         <div className="flex items-center justify-between h-16 sm:h-[4.25rem]">
           <Link
-            to={ROUTES.HOME}
+            to={logoLink}
             className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent"
           >
             {APP_NAME}

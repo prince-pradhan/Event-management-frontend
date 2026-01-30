@@ -2,7 +2,7 @@
  * Aligned with backend models and enums (bakend/src/models/enum.js)
  */
 
-export const APP_NAME = 'College Event Management';
+export const APP_NAME = 'EduEvents';
 
 export const ROUTES = {
   HOME: '/',

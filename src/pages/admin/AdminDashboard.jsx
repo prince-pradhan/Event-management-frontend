@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/common/Card';
+import VerificationBanner from '../../components/common/VerificationBanner';
 import { ROUTES } from '../../utils/constants';
 
 /**
@@ -12,8 +14,11 @@ const STATS = [
 ];
 
 export default function AdminDashboard() {
+  const { user } = useAuth();
+
   return (
     <div className="container-app py-10">
+      {user && !user.isVerified && <VerificationBanner />}
       <h1 className="page-heading text-slate-900 mb-2">Admin panel</h1>
       <p className="text-slate-600 mb-10">Overview and quick actions</p>
 

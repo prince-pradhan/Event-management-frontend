@@ -25,6 +25,17 @@ export default function Login() {
     try {
       const res = await login({ email, password });
       const user = res.data?.user;
+      
+      // If user is not verified, redirect to verification page
+      if (user && !user.isVerified) {
+        navigate(ROUTES.VERIFY_EMAIL, { 
+          replace: true,
+          state: { message: 'Please verify your email to continue.' }
+        });
+        return;
+      }
+      
+      // Redirect based on role
       if (user?.role === USER_ROLE.ADMIN) {
         navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
       } else {

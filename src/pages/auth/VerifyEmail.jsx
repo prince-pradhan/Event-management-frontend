@@ -20,6 +20,7 @@ export default function VerifyEmail() {
   const navigate = useNavigate();
   const location = useLocation();
   const fromRegister = location.state?.fromRegister;
+  const message = location.state?.message;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,9 +50,9 @@ export default function VerifyEmail() {
           </div>
           <h1 className="page-heading text-slate-900">Verify your email</h1>
           <p className="mt-2 text-slate-600">
-            {fromRegister
+            {message || (fromRegister
               ? 'We sent a verification code to your email. Enter it below.'
-              : 'Enter the verification code from your email.'}
+              : 'Enter the verification code from your email.')}
           </p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-5">

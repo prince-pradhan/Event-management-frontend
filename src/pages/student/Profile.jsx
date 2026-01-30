@@ -1,5 +1,7 @@
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/common/Card';
+import Button from '../../components/common/Button';
+import { ROUTES } from '../../utils/constants';
 
 /**
  * Backend User model: email, name, role, isVerified, firstTimeLogin, lastLogin, timestamps
@@ -61,6 +63,18 @@ export default function StudentProfile() {
               <dd className="mt-1 text-slate-900 font-medium">{lastLogin}</dd>
             </div>
           </dl>
+          {!user?.isVerified && (
+            <div className="mt-6 p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <span>Your email is not verified. Verify to book events and unlock all features.</span>
+              <Button
+                size="sm"
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+                onClick={() => (window.location.href = ROUTES.VERIFY_EMAIL)}
+              >
+                Verify now
+              </Button>
+            </div>
+          )}
         </Card>
       </div>
     </div>

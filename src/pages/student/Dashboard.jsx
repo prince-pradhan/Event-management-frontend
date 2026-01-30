@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/common/Card';
+import VerificationBanner from '../../components/common/VerificationBanner';
 import { ROUTES } from '../../utils/constants';
 
 const QUICK_LINKS = [
@@ -14,6 +15,7 @@ export default function StudentDashboard() {
 
   return (
     <div className="container-app py-10">
+      {user && !user.isVerified && <VerificationBanner />}
       <div className="mb-10">
         <h1 className="page-heading text-slate-900">
           Hello, {user?.name?.split(' ')[0] || 'there'} 👋
