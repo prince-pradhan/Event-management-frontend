@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased text-slate-800 bg-surface-50 font-sans;
+  }
+}
+
+@layer components {
+  .container-app {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  .page-heading {
+    @apply text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight;
+  }
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-soft-lg hover:-translate-y-0.5;
+  }
+  .btn-primary-gradient {
+    @apply bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-soft
+           hover:from-primary-700 hover:to-primary-800 hover:shadow-soft-lg
+           focus:ring-2 focus:ring-primary-500/40 focus:ring-offset-2;
+  }
+}
