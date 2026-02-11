@@ -1,40 +1,42 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { ROUTES, USER_ROLE } from '../../utils/constants';
-import Card from '../../components/common/Card';
-import Input from '../../components/common/Input';
-import Button from '../../components/common/Button';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { ROUTES, USER_ROLE } from "../../utils/constants";
+import Card from "../../components/common/Card";
+import Input from "../../components/common/Input";
+import Button from "../../components/common/Button";
+import { GoogleLogin } from "@react-oauth/google";
+import axios from "axios";
 
 /**
  * Backend: POST /api/user/login { email, password }
  * Redirect: admin → /admin/dashboard, student → /student/dashboard
  */
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
     try {
       const res = await login({ email, password });
       const user = res.data?.user;
-      
+
       // If user is not verified, redirect to verification page
       if (user && !user.isVerified) {
-        navigate(ROUTES.VERIFY_EMAIL, { 
+        navigate(ROUTES.VERIFY_EMAIL, {
           replace: true,
-          state: { message: 'Please verify your email to continue.' }
+          state: { message: "Please verify your email to continue." },
         });
         return;
       }
-      
+
       // Redirect based on role
       if (user?.role === USER_ROLE.ADMIN) {
         navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
@@ -42,7 +44,9 @@ export default function Login() {
         navigate(ROUTES.STUDENT_DASHBOARD, { replace: true });
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(
+        err.response?.data?.message || "Login failed. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -78,15 +82,27 @@ export default function Login() {
             </div>
           )}
           <Button type="submit" className="w-full" size="lg" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? "Signing in..." : "Sign in"}
           </Button>
         </form>
         <p className="mt-6 text-center text-sm text-slate-600">
-          Don&apos;t have an account?{' '}
-          <Link to={ROUTES.REGISTER} className="font-semibold text-primary-600 hover:text-primary-700">
+          Don&apos;t have an account?{" "}
+          <Link
+            to={ROUTES.REGISTER}
+            className="font-semibold text-primary-600 hover:text-primary-700"
+          >
             Create one
           </Link>
         </p>
+        <GoogleLogin
+          onSuccess={async (credentialResponse) => {
+            const res = await axios.post("/api/auth/google", {
+              token: credentialResponse.credential,
+            });
+            console.log(res.data);
+          }}
+          onError={() => console.log("Google Login Failed")}
+        />
       </Card>
     </div>
   );
