@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/common/Card';
@@ -12,10 +13,20 @@ const QUICK_LINKS = [
 
 export default function StudentDashboard() {
   const { user, isAdmin } = useAuth();
+  const [bannerDismissed, setBannerDismissed] = useState(
+    localStorage.getItem('verificationBannerDismissed') === 'true'
+  );
+
+  const handleDismissBanner = () => {
+    setBannerDismissed(true);
+    localStorage.setItem('verificationBannerDismissed', 'true');
+  };
 
   return (
     <div className="container-app py-10">
-      {user && !user.isVerified && <VerificationBanner />}
+      {user && !user.isVerified && !bannerDismissed && (
+        <VerificationBanner onDismiss={handleDismissBanner} />
+      )}
       <div className="mb-10">
         <h1 className="page-heading text-slate-900">
           Hello, {user?.name?.split(' ')[0] || 'there'} 👋

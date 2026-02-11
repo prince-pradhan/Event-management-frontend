@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/common/Card';
@@ -15,10 +16,20 @@ const STATS = [
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const [bannerDismissed, setBannerDismissed] = useState(
+    localStorage.getItem('verificationBannerDismissed') === 'true'
+  );
+
+  const handleDismissBanner = () => {
+    setBannerDismissed(true);
+    localStorage.setItem('verificationBannerDismissed', 'true');
+  };
 
   return (
     <div className="container-app py-10">
-      {user && !user.isVerified && <VerificationBanner />}
+      {user && !user.isVerified && !bannerDismissed && (
+        <VerificationBanner onDismiss={handleDismissBanner} />
+      )}
       <h1 className="page-heading text-slate-900 mb-2">Admin panel</h1>
       <p className="text-slate-600 mb-10">Overview and quick actions</p>
 

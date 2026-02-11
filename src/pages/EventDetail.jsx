@@ -1,10 +1,9 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { eventsApi } from '../api/endpoints';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
-import { useAuth } from '../context/AuthContext';
-import { getCategoryLabel, EVENT_STATUS, ROUTES, USER_ROLE } from '../utils/constants';
+import { getCategoryLabel, EVENT_STATUS, ROUTES } from '../utils/constants';
 
 /**
  * Backend event: title, description, category (populated), organizer (populated),
@@ -13,8 +12,6 @@ import { getCategoryLabel, EVENT_STATUS, ROUTES, USER_ROLE } from '../utils/cons
  */
 export default function EventDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -62,9 +59,6 @@ export default function EventDetail() {
     : '—';
   const organizerName = event.organizer?.name || (typeof event.organizer === 'object' ? event.organizer?.email : '—');
   const statusLabel = event.status ? EVENT_STATUS[event.status] || event.status : null;
-
-  const isVerified = !!user?.isVerified;
-  const canBook = isAuthenticated && isVerified;
 
   return (
     <div className="container-app py-10">
@@ -124,36 +118,8 @@ export default function EventDetail() {
               {event.description}
             </div>
           )}
-          <div className="mt-8 flex flex-wrap gap-4 items-center">
-            {isAuthenticated ? (
-              <>
-                <Button size="lg" disabled={!canBook}>
-                  {canBook ? 'Register / Book' : 'Verify email to book'}
-                </Button>
-                {!isVerified && (
-                  <div className="text-sm text-amber-700">
-                    You can browse events, but need to{' '}
-                    <button
-                      type="button"
-                      className="font-semibold underline"
-                      onClick={() => navigate(ROUTES.VERIFY_EMAIL)}
-                    >
-                      verify your email
-                    </button>{' '}
-                    before booking.
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <Button
-                  size="lg"
-                  onClick={() => navigate(ROUTES.LOGIN)}
-                >
-                  Login to book
-                </Button>
-              </>
-            )}
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Button size="lg">Register / Book</Button>
             <Link to={ROUTES.EVENTS}>
               <Button variant="secondary" size="lg">Back to events</Button>
             </Link>
