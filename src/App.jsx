@@ -5,7 +5,7 @@ import "./styles/index.css";
 
 export default function App() {
   return (
-    <GoogleOAuthProvider clientId="423512627428-ge7b6qmbkm6emofr4fukgoboptv0rpkc.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <AuthProvider>
         <AppRouter />
       </AuthProvider>

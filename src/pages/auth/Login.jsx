@@ -6,7 +6,7 @@ import Card from "../../components/common/Card";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import { GoogleLogin } from "@react-oauth/google";
-import axios from "axios";
+import { authApi } from "../../api/endpoints/auth";
 
 /**
  * Backend: POST /api/user/login { email, password }
@@ -17,7 +17,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, setUserFromResponse } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -96,12 +96,35 @@ export default function Login() {
         </p>
         <GoogleLogin
           onSuccess={async (credentialResponse) => {
-            const res = await axios.post("/api/auth/google", {
-              token: credentialResponse.credential,
-            });
-            console.log(res.data);
+            setError("");
+            setLoading(true);
+            try {
+              const res = await authApi.googleLogin(credentialResponse.credential);
+              setUserFromResponse(res.data);
+              const user = res.data?.user;
+              if (user && !user.isVerified) {
+                navigate(ROUTES.VERIFY_EMAIL, {
+                  replace: true,
+                  state: { message: "Please verify your email to continue." },
+                });
+                return;
+              }
+              if (user?.role === USER_ROLE.ADMIN) {
+                navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
+              } else {
+                navigate(ROUTES.STUDENT_DASHBOARD, { replace: true });
+              }
+            } catch (err) {
+              setError(
+                err.response?.data?.message || "Google sign-in failed. Please try again.",
+              );
+            } finally {
+              setLoading(false);
+            }
           }}
-          onError={() => console.log("Google Login Failed")}
+          onError={() => {
+            setError("Google sign-in was cancelled or failed.");
+          }}
         />
       </Card>
     </div>
