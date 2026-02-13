@@ -94,38 +94,41 @@ export default function Login() {
             Create one
           </Link>
         </p>
-        <GoogleLogin
-          onSuccess={async (credentialResponse) => {
-            setError("");
-            setLoading(true);
-            try {
-              const res = await authApi.googleLogin(credentialResponse.credential);
-              setUserFromResponse(res.data);
-              const user = res.data?.user;
-              if (user && !user.isVerified) {
-                navigate(ROUTES.VERIFY_EMAIL, {
-                  replace: true,
-                  state: { message: "Please verify your email to continue." },
-                });
-                return;
+
+        <div className="mt-4">
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              setError("");
+              setLoading(true);
+              try {
+                const res = await authApi.googleLogin(credentialResponse.credential);
+                setUserFromResponse(res.data);
+                const user = res.data?.user;
+                if (user && !user.isVerified) {
+                  navigate(ROUTES.VERIFY_EMAIL, {
+                    replace: true,
+                    state: { message: "Please verify your email to continue." },
+                  });
+                  return;
+                }
+                if (user?.role === USER_ROLE.ADMIN) {
+                  navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
+                } else {
+                  navigate(ROUTES.STUDENT_DASHBOARD, { replace: true });
+                }
+              } catch (err) {
+                setError(
+                  err.response?.data?.message || "Google sign-in failed. Please try again.",
+                );
+              } finally {
+                setLoading(false);
               }
-              if (user?.role === USER_ROLE.ADMIN) {
-                navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
-              } else {
-                navigate(ROUTES.STUDENT_DASHBOARD, { replace: true });
-              }
-            } catch (err) {
-              setError(
-                err.response?.data?.message || "Google sign-in failed. Please try again.",
-              );
-            } finally {
-              setLoading(false);
-            }
-          }}
-          onError={() => {
-            setError("Google sign-in was cancelled or failed.");
-          }}
-        />
+            }}
+            onError={() => {
+              setError("Google sign-in was cancelled or failed.");
+            }}
+          />
+        </div>
       </Card>
     </div>
   );
