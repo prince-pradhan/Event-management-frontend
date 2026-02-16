@@ -17,4 +17,6 @@ export const authApi = {
   resetPassword: (token, password) =>
     apiClient.post(`${AUTH_BASE}/reset-password/${token}`, { password }),
   getUsers: (params) => apiClient.get(`${AUTH_BASE}/user`, { params }),
+  /** Google sign-in: send ID token to backend */
+  googleLogin: (idToken) => apiClient.post(`${AUTH_BASE}/google`, { token: idToken }),
 };
