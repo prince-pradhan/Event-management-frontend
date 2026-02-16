@@ -46,7 +46,7 @@ export default function Home() {
             <Link to={ROUTES.EVENTS}>
               <Button
                 size="lg"
-                className="min-w-[180px] bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-lg hover:shadow-xl border-2 border-primary-500"
+                className="min-w-[180px] bg-white text-primary-700 hover:bg-slate-100 font-bold shadow-lg hover:shadow-xl border-2 border-white"
               >
                 Browse events
               </Button>
