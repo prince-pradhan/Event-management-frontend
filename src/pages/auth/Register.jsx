@@ -5,6 +5,8 @@ import { ROUTES, USER_ROLE } from '../../utils/constants';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import { GoogleLogin } from "@react-oauth/google";
+import { authApi } from "../../api/endpoints/auth"
 
 /**
  * Backend: POST /api/user/signup { email, name, password, role? }
@@ -14,6 +16,7 @@ export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signup } = useAuth();
@@ -22,10 +25,18 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
     setLoading(true);
     try {
-      await signup({ name, email, password, role: USER_ROLE.STUDENT });
-      navigate(ROUTES.VERIFY_EMAIL, { state: { fromRegister: true } });
+      await signup({ name, email, password });
+      // On success, redirect to login or verify email depending on backend flow
+      // The current flow suggests verify-email
+      navigate(ROUTES.VERIFY_EMAIL, { state: { email, fromRegister: true } });
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
@@ -38,7 +49,7 @@ export default function Register() {
       <Card className="w-full max-w-md shadow-soft-lg animate-slide-up">
         <div className="text-center mb-8">
           <h1 className="page-heading text-slate-900">Create account</h1>
-          <p className="mt-2 text-slate-600">Join to browse and register for events. We&apos;ll send a verification code to your email.</p>
+          <p className="mt-2 text-slate-600">Join to browse and register for events.</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-5">
           <Input
@@ -65,6 +76,14 @@ export default function Register() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <Input
+            label="Confirm Password"
+            type="password"
+            placeholder="••••••••"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
           {error && (
             <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-700 font-medium">
               {error}
@@ -80,6 +99,40 @@ export default function Register() {
             Sign in
           </Link>
         </p>
+        <div className="mt-4">
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              setError("");
+              setLoading(true);
+              try {
+                const res = await authApi.googleLogin(credentialResponse.credential);
+                setUserFromResponse(res.data);
+                const user = res.data?.user;
+                if (user && !user.isVerified) {
+                  navigate(ROUTES.VERIFY_EMAIL, {
+                    replace: true,
+                    state: { message: "Please verify your email to continue." },
+                  });
+                  return;
+                }
+                if (user?.role === USER_ROLE.ADMIN) {
+                  navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
+                } else {
+                  navigate(ROUTES.STUDENT_DASHBOARD, { replace: true });
+                }
+              } catch (err) {
+                setError(
+                  err.response?.data?.message || "Google sign-in failed. Please try again.",
+                );
+              } finally {
+                setLoading(false);
+              }
+            }}
+            onError={() => {
+              setError("Google sign-in was cancelled or failed.");
+            }}
+          />
+        </div>
       </Card>
     </div>
   );

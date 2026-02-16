@@ -1,37 +1,100 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { ROUTES, EVENT_STATUS } from '../../utils/constants';
-
-/**
- * Backend Event model: title, description, category (ref), organizer (ref),
- * location { venue, address, city }, startDate, endDate, totalSeats, availableSeats,
- * price, status (DRAFT|PUBLISHED|CANCELLED|COMPLETED), bannerImage
- * Static rows match this shape.
- */
-const STATIC_EVENTS = [
-  { _id: '1', title: 'Tech Workshop: Intro to Web Dev', category: { name: 'Workshop' }, startDate: '2025-01-15T10:00:00', totalSeats: 50, availableSeats: 45, status: EVENT_STATUS.PUBLISHED },
-  { _id: '2', title: 'Annual College Festival', category: { name: 'Festival' }, startDate: '2025-02-20T09:00:00', totalSeats: 500, availableSeats: 500, status: EVENT_STATUS.PUBLISHED },
-  { _id: '3', title: 'Career Seminar: Industry Insights', category: { name: 'Seminar' }, startDate: '2024-12-20T14:00:00', totalSeats: 80, availableSeats: 0, status: EVENT_STATUS.COMPLETED },
-  { _id: '4', title: 'Drama Club – Annual Play', category: { name: 'Club Activity' }, startDate: '2025-03-05T18:00:00', totalSeats: 120, availableSeats: 120, status: EVENT_STATUS.DRAFT },
-];
+import { eventsApi } from '../../api/endpoints/events';
 
 function formatDate(dateStr) {
   return dateStr ? new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 }
 
 export default function AdminEvents() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await eventsApi.getAll();
+        // Backend returns { success: true, events: [...], pagination: {...} }
+        if (response.data.success) {
+          setEvents(response.data.events);
+        } else {
+          setError('Failed to fetch events');
+        }
+      } catch (err) {
+        console.error('Error fetching events:', err);
+        setError('Failed to load events. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  const handleDelete = async (eventId) => {
+    if (!window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const res = await eventsApi.delete(eventId);
+      if (res.data.success) {
+        setEvents(prev => prev.filter(e => e._id !== eventId));
+      }
+    } catch (err) {
+      console.error('Failed to delete event', err);
+      alert('Failed to delete event');
+    }
+  };
+
+  const handleStatusChange = async (eventId, newStatus) => {
+    try {
+      const res = await eventsApi.updateStatus(eventId, newStatus);
+      if (res.data.success) {
+        setEvents(prev => prev.map(e =>
+          e._id === eventId ? { ...e, status: newStatus } : e
+        ));
+      }
+    } catch (err) {
+      console.error('Failed to update status', err);
+      alert('Failed to update status: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container-app py-10 text-center">
+        <p className="text-slate-500">Loading events...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container-app py-10 text-center">
+        <p className="text-red-500">{error}</p>
+        <Button onClick={() => window.location.reload()} className="mt-4" size="sm">Retry</Button>
+      </div>
+    );
+  }
+
   return (
     <div className="container-app py-10">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <Link to={ROUTES.ADMIN} className="text-sm font-medium text-primary-600 hover:text-primary-700 mb-2 inline-block">
-            ← Back to admin
+          <Link to={ROUTES.ADMIN_DASHBOARD} className="text-sm font-medium text-primary-600 hover:text-primary-700 mb-2 inline-block">
+            ← Back to dashboard
           </Link>
           <h1 className="page-heading text-slate-900">Manage events</h1>
-          <p className="mt-1 text-slate-600">Create, edit, and publish (Event model)</p>
+          <p className="mt-1 text-slate-600">Create, edit, and publish events</p>
         </div>
-        <Button className="bg-accent-500 hover:bg-accent-600 text-white">+ New event</Button>
+        <Link to={ROUTES.ADMIN_EVENTS_CREATE}>
+          <Button className="bg-accent-500 hover:bg-accent-600 text-white">+ New event</Button>
+        </Link>
       </div>
 
       <Card padding={false} className="overflow-hidden shadow-soft">
@@ -48,43 +111,60 @@ export default function AdminEvents() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {STATIC_EVENTS.map((event) => (
-                <tr key={event._id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="font-semibold text-slate-900">{event.title}</p>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{event.category?.name || '—'}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{formatDate(event.startDate)}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{event.availableSeats ?? '—'} / {event.totalSeats ?? '—'}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-medium ${
-                        event.status === EVENT_STATUS.PUBLISHED
-                          ? 'bg-emerald-50 text-emerald-700'
-                          : event.status === EVENT_STATUS.DRAFT
-                          ? 'bg-amber-50 text-amber-700'
-                          : event.status === EVENT_STATUS.CANCELLED
-                          ? 'bg-red-50 text-red-700'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}
-                    >
-                      {event.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button type="button" className="text-sm font-medium text-primary-600 hover:text-primary-700">
-                      Edit
-                    </button>
+              {events.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-8 text-center text-slate-500">
+                    No events found. Click "New Event" to create one.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                events.map((event) => (
+                  <tr key={event._id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <p className="font-semibold text-slate-900">{event.title}</p>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{event.category?.name || '—'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{formatDate(event.startDate)}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{event.availableSeats ?? '—'} / {event.totalSeats ?? '—'}</td>
+                    <td className="px-6 py-4">
+                      <select
+                        value={event.status}
+                        onChange={(e) => handleStatusChange(event._id, e.target.value)}
+                        className={`block w-full max-w-[140px] rounded-lg border-0 py-1.5 pl-3 pr-8 text-xs font-semibold ring-1 ring-inset ${event.status === EVENT_STATUS.PUBLISHED
+                            ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
+                            : event.status === EVENT_STATUS.DRAFT
+                              ? 'bg-amber-50 text-amber-700 ring-amber-600/20'
+                              : event.status === EVENT_STATUS.CANCELLED
+                                ? 'bg-red-50 text-red-700 ring-red-600/20'
+                                : 'bg-slate-50 text-slate-600 ring-slate-500/10'
+                          } focus:ring-2 focus:ring-primary-600 sm:leading-6`}
+                      >
+                        {Object.values(EVENT_STATUS).map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Link to={`/admin/events/${event._id}/edit`}>
+                        <button type="button" className="text-sm font-medium text-primary-600 hover:text-primary-700">
+                          Edit
+                        </button>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(event._id)}
+                        className="ml-4 text-sm font-medium text-red-600 hover:text-red-700"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        </div>
-        <div className="p-6 border-t border-slate-100 bg-slate-50/50">
-          <p className="text-sm text-slate-500 italic">
-            Static data matching backend Event model. Real events will be manageable when the API is connected.
-          </p>
         </div>
       </Card>
     </div>

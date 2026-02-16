@@ -19,6 +19,8 @@ import Notifications from '../pages/student/Notifications';
 
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminEvents from '../pages/admin/AdminEvents';
+import AdminCreateEvent from '../pages/admin/AdminCreateEvent';
+import AdminEditEvent from '../pages/admin/AdminEditEvent';
 import AdminUsers from '../pages/admin/AdminUsers';
 
 const router = createBrowserRouter([
@@ -79,6 +81,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute adminOnly>
             <AdminEvents />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/events/new',
+        element: (
+          <ProtectedRoute adminOnly>
+            <AdminCreateEvent />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/events/:id/edit',
+        element: (
+          <ProtectedRoute adminOnly>
+            <AdminEditEvent />
           </ProtectedRoute>
         ),
       },

@@ -9,14 +9,14 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated, user, isAdmin } = useAuth();
 
-  // Only show Home/Events nav when NOT logged in
-  const navLinks = isAuthenticated ? [] : [
+  // Show Home/Events nav for everyone, or specific logic
+  const navLinks = [
     { to: ROUTES.HOME, label: 'Home' },
     { to: ROUTES.EVENTS, label: 'Events' },
   ];
 
   // Logo links to dashboard when logged in, home when not
-  const logoLink = isAuthenticated 
+  const logoLink = isAuthenticated
     ? (isAdmin ? ROUTES.ADMIN_DASHBOARD : ROUTES.STUDENT_DASHBOARD)
     : ROUTES.HOME;
 
