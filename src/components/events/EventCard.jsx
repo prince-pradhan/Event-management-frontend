@@ -9,6 +9,7 @@ import { getCategoryLabel } from '../../utils/constants';
  */
 export default function EventCard({ event }) {
   const { _id, title, description, startDate, location, category, bannerImage, status } = event;
+  const bannerUrl = typeof bannerImage === 'string' ? bannerImage : bannerImage?.url;
   const categoryLabel = getCategoryLabel(category);
   const date = startDate
     ? new Date(startDate).toLocaleDateString('en-IN', {
@@ -21,9 +22,9 @@ export default function EventCard({ event }) {
   return (
     <Link to={`/events/${_id}`} className="block h-full">
       <Card padding={false} hover className="h-full flex flex-col">
-        {bannerImage ? (
+        {bannerUrl ? (
           <img
-            src={bannerImage}
+            src={bannerUrl}
             alt={title}
             className="w-full h-44 object-cover rounded-t-2xl"
           />

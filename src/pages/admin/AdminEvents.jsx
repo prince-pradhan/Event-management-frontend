@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { ROUTES, EVENT_STATUS } from '../../utils/constants';
@@ -13,6 +13,10 @@ export default function AdminEvents() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [uploadingEventId, setUploadingEventId] = useState(null);
+  const [bannerUploadError, setBannerUploadError] = useState('');
+  const fileInputRef = useRef(null);
+  const uploadTargetIdRef = useRef(null);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -65,6 +69,40 @@ export default function AdminEvents() {
     }
   };
 
+  const openBannerPicker = (eventId) => {
+    setBannerUploadError('');
+    uploadTargetIdRef.current = eventId;
+    fileInputRef.current?.click();
+  };
+
+  const handleBannerFilePicked = async (e) => {
+    const file = e.target.files?.[0];
+    const eventId = uploadTargetIdRef.current;
+    // allow re-selecting the same file later
+    e.target.value = '';
+
+    if (!file || !eventId) return;
+
+    setUploadingEventId(eventId);
+    setBannerUploadError('');
+    try {
+      const res = await eventsApi.patchBanner(eventId, file);
+      const updated = res.data?.event;
+      if (!res.data?.success || !updated) {
+        throw new Error(res.data?.message || 'Failed to upload banner');
+      }
+      setEvents((prev) => prev.map((ev) => (ev._id === eventId ? updated : ev)));
+    } catch (err) {
+      console.error('Failed to upload banner', err);
+      setBannerUploadError(
+        err.response?.data?.message || err.message || 'Failed to upload banner image',
+      );
+    } finally {
+      setUploadingEventId(null);
+      uploadTargetIdRef.current = null;
+    }
+  };
+
   if (loading) {
     return (
       <div className="container-app py-10 text-center">
@@ -98,6 +136,21 @@ export default function AdminEvents() {
       </div>
 
       <Card padding={false} className="overflow-hidden shadow-soft">
+        {/* Hidden input used by per-row upload buttons */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleBannerFilePicked}
+        />
+
+        {bannerUploadError && (
+          <div className="px-6 py-3 border-b border-slate-100 bg-red-50 text-red-700 text-sm font-medium">
+            {bannerUploadError}
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -152,6 +205,42 @@ export default function AdminEvents() {
                           Edit
                         </button>
                       </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => openBannerPicker(event._id)}
+                        disabled={uploadingEventId === event._id}
+                        className="ml-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 disabled:opacity-60"
+                        title="Upload banner image (Cloudinary)"
+                        aria-label="Upload banner image"
+                      >
+                        {/* Upload icon */}
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="shrink-0"
+                        >
+                          <path
+                            d="M12 3v10m0-10 4 4m-4-4-4 4"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        {uploadingEventId === event._id ? 'Uploading' : 'Banner'}
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => handleDelete(event._id)}

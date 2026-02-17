@@ -148,6 +148,8 @@ export default function EventDetail() {
     : '—';
   const organizerName = event.organizer?.name || (typeof event.organizer === 'object' ? event.organizer?.email : '—');
   const statusLabel = event.status ? EVENT_STATUS[event.status] || event.status : null;
+  const bannerUrl =
+    typeof event.bannerImage === 'string' ? event.bannerImage : event.bannerImage?.url;
 
   // Registration Logic checks
   const now = new Date();
@@ -210,9 +212,9 @@ export default function EventDetail() {
       )}
 
       <Card padding={false} className="overflow-hidden shadow-soft-lg">
-        {event.bannerImage ? (
+        {bannerUrl ? (
           <img
-            src={event.bannerImage}
+            src={bannerUrl}
             alt={event.title}
             className="w-full h-56 sm:h-72 object-cover"
           />
