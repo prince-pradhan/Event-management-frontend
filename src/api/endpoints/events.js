@@ -14,4 +14,5 @@ export const eventsApi = {
   create: (data) => apiClient.post('/events', data),
   update: (id, data) => apiClient.put(`/events/${id}`, data),
   delete: (id) => apiClient.delete(`/events/${id}`),
+  updateStatus: (id, status) => apiClient.post(`/events/${id}/status`, { status }),
 };

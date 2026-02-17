@@ -19,6 +19,7 @@ export const ROUTES = {
   // Admin routes (when logged in as admin)
   ADMIN_DASHBOARD: '/admin/dashboard',
   ADMIN_EVENTS: '/admin/events',
+  ADMIN_EVENTS_CREATE: '/admin/events/new',
   ADMIN_USERS: '/admin/users',
   // Aliases for menu/redirects
   ADMIN: '/admin/dashboard',

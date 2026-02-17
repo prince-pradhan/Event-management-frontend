@@ -14,14 +14,7 @@ export default function Footer() {
               One place for seminars, workshops, festivals, and club activities.
             </p>
           </div>
-          <div className="flex gap-8">
-            <Link to={ROUTES.EVENTS} className="text-sm font-medium hover:text-primary-300 transition-colors">
-              Events
-            </Link>
-            <Link to={ROUTES.LOGIN} className="text-sm font-medium hover:text-primary-300 transition-colors">
-              Login
-            </Link>
-          </div>
+{/* Links removed as requested */}
         </div>
         <div className="mt-10 pt-8 border-t border-slate-700 text-center text-sm text-slate-500">
           &copy; {new Date().getFullYear()} {APP_NAME}. All rights reserved.
