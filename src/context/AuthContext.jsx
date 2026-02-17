@@ -42,11 +42,6 @@ export function AuthProvider({ children }) {
     return res;
   };
 
-  /** Call after Google (or other) auth that returns { success, user } */
-  const setUserFromResponse = (data) => {
-    if (data?.success && data?.user) setUser(data.user);
-  };
-
   const value = {
     user,
     loading,
@@ -56,7 +51,6 @@ export function AuthProvider({ children }) {
     logout,
     signup,
     verifyEmail,
-    setUserFromResponse,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
