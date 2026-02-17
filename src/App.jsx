@@ -7,7 +7,7 @@ export default function App() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <AuthProvider>
-        <AppRouter />
+             <AppRouter />
       </AuthProvider>
     </GoogleOAuthProvider>
   );
