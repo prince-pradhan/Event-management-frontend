@@ -7,7 +7,7 @@ export default function App() {
   return (
     <GoogleOAuthProvider clientId="423512627428-ge7b6qmbkm6emofr4fukgoboptv0rpkc.apps.googleusercontent.com">
       <AuthProvider>
-        <AppRouter />
+             <AppRouter />
       </AuthProvider>
     </GoogleOAuthProvider>
   );
