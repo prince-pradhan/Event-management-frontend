@@ -6,7 +6,7 @@ import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { GoogleLogin } from "@react-oauth/google";
-import { authApi } from "../../api/endpoints/auth"
+import { authApi } from "../../api/endpoints/auth";
 
 /**
  * Backend: POST /api/user/signup { email, name, password, role? }
@@ -19,7 +19,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
+  const { signup, setUserFromResponse } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
