@@ -141,11 +141,7 @@ export default function AdminUsers() {
             </tbody>
           </table>
         </div>
-        <div className="p-4 border-t border-slate-100 bg-slate-50/30">
-          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest text-center">
-            Live database connection active
-          </p>
-        </div>
+
       </Card>
     </div>
   );

@@ -35,6 +35,7 @@ export default function AdminEditEvent() {
     });
 
     const [initialSeats, setInitialSeats] = useState({ total: 0, available: 0 });
+    const [regFields, setRegFields] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -213,7 +214,7 @@ export default function AdminEditEvent() {
                                     placeholder="Enter a catchy title..."
                                     value={formData.title}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all text-slate-900 font-bold placeholder:font-medium placeholder:text-slate-300 shadow-sm"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all text-slate-900 font-bold placeholder:font-medium placeholder:text-slate-300 shadow-sm bg-white"
                                 />
                             </div>
 
@@ -225,7 +226,7 @@ export default function AdminEditEvent() {
                                     placeholder="Tell the story of your event..."
                                     value={formData.description}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all text-slate-700 font-medium placeholder:text-slate-300 shadow-sm"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all text-slate-700 font-medium placeholder:text-slate-300 shadow-sm bg-white"
                                 />
                             </div>
 
@@ -237,7 +238,7 @@ export default function AdminEditEvent() {
                                     placeholder="https://images.unsplash.com/..."
                                     value={formData.bannerImage}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 text-slate-600 font-medium shadow-sm transition-all"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 text-slate-600 font-medium shadow-sm transition-all bg-white"
                                 />
                                 {formData.bannerImage && (
                                     <div className="mt-6 rounded-2xl overflow-hidden border-4 border-white shadow-lg aspect-video bg-slate-50 relative group">
@@ -269,7 +270,7 @@ export default function AdminEditEvent() {
                                     required
                                     value={formData.startDate}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-3.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-700 shadow-sm"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-3.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-700 shadow-sm bg-white"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -280,7 +281,7 @@ export default function AdminEditEvent() {
                                     required
                                     value={formData.endDate}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-3.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-700 shadow-sm"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-3.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-700 shadow-sm bg-white"
                                 />
                             </div>
                         </div>
@@ -294,7 +295,7 @@ export default function AdminEditEvent() {
                                     placeholder="e.g. Main Auditorium"
                                     value={formData.venue}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm bg-white"
                                 />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -306,7 +307,7 @@ export default function AdminEditEvent() {
                                         placeholder="Street, Milestone..."
                                         value={formData.address}
                                         onChange={handleChange}
-                                        className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm"
+                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm bg-white"
                                     />
                                 </div>
                                 <div>
@@ -317,7 +318,7 @@ export default function AdminEditEvent() {
                                         placeholder="City Name"
                                         value={formData.city}
                                         onChange={handleChange}
-                                        className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm"
+                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm bg-white"
                                     />
                                 </div>
                             </div>
@@ -346,7 +347,7 @@ export default function AdminEditEvent() {
                                     required
                                     value={formData.category}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 bg-slate-50 font-bold text-slate-900 shadow-sm appearance-none"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 bg-white font-bold text-slate-900 shadow-sm appearance-none"
                                 >
                                     <option value="">Select Category</option>
                                     {categories.map(cat => (
@@ -363,7 +364,7 @@ export default function AdminEditEvent() {
                                         name="price"
                                         value={formData.price}
                                         onChange={handleChange}
-                                        className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm"
+                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
                                     />
                                 </div>
                                 <div>
@@ -373,7 +374,7 @@ export default function AdminEditEvent() {
                                         name="totalSeats"
                                         value={formData.totalSeats}
                                         onChange={handleChange}
-                                        className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm"
+                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
                                     />
                                 </div>
                             </div>
@@ -388,7 +389,7 @@ export default function AdminEditEvent() {
                                             name="registrationStartDate"
                                             value={formData.registrationStartDate}
                                             onChange={handleChange}
-                                            className="w-full rounded-xl border-slate-100 text-sm focus:border-primary-500 font-bold text-slate-600 shadow-sm px-4 py-2.5"
+                                            className="w-full rounded-xl border-2 border-slate-300 text-sm focus:border-primary-500 font-bold text-slate-600 shadow-sm px-4 py-2.5 bg-white"
                                         />
                                     </div>
                                     <div>
@@ -398,7 +399,7 @@ export default function AdminEditEvent() {
                                             name="registrationEndDate"
                                             value={formData.registrationEndDate}
                                             onChange={handleChange}
-                                            className="w-full rounded-xl border-slate-100 text-sm focus:border-primary-500 font-bold text-slate-600 shadow-sm px-4 py-2.5"
+                                            className="w-full rounded-xl border-2 border-slate-300 text-sm focus:border-primary-500 font-bold text-slate-600 shadow-sm px-4 py-2.5 bg-white"
                                         />
                                     </div>
                                 </div>
@@ -406,24 +407,18 @@ export default function AdminEditEvent() {
                         </div>
                     </section>
 
-                    <section className="bg-white rounded-3xl shadow-soft-xl border border-slate-100/50 p-7">
+                    {/* <section className="bg-white rounded-3xl shadow-soft-xl border border-slate-100/50 p-7">
                         <div className="flex items-center gap-4 mb-6">
                             <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl text-xl shadow-sm border border-amber-100/50">
                                 📋
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Form Blueprint</h2>
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Extra Fields</h2>
                                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Attendee Data Requirements</p>
                             </div>
                         </div>
 
-                        {/* WARNING ALERT */}
-                        <div className="mb-6 p-4 bg-amber-50 rounded-2xl border border-amber-200/50 flex gap-3 items-start">
-                            <span className="text-lg">⚠️</span>
-                            <p className="text-[11px] font-bold text-amber-800 leading-relaxed uppercase tracking-tight">
-                                Registration fields cannot be modified after an event is created. This is a backend restriction to maintain data integrity.
-                            </p>
-                        </div>
+
 
                         <div className="space-y-3 mb-8 opacity-70 cursor-not-allowed">
                             {regFields.length === 0 && (
@@ -448,7 +443,7 @@ export default function AdminEditEvent() {
                             <div className="text-2xl mb-2">🔒</div>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Blueprint Locked</p>
                         </div>
-                    </section>
+                    </section> */}
                 </div>
             </form>
         </div>

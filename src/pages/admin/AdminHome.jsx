@@ -7,9 +7,7 @@ import Card from '../../components/common/Card';
 export default function AdminHome() {
     const [stats, setStats] = useState({
         totalEvents: 0,
-        totalUsers: 0,
-        activeEvents: 0,
-        totalRegistrations: 0
+        totalUsers: 0
     });
     const [loading, setLoading] = useState(true);
 
@@ -27,9 +25,7 @@ export default function AdminHome() {
 
                     setStats({
                         totalEvents: eventsRes.data.pagination?.total || events.length,
-                        totalUsers: users.length,
-                        activeEvents: events.filter(e => e.status === 'published').length,
-                        totalRegistrations: 0 // Will need a specific API for aggregate registrations later
+                        totalUsers: users.length
                     });
                 }
             } catch (err) {
@@ -44,8 +40,6 @@ export default function AdminHome() {
     const metrics = [
         { label: 'Total Events', value: stats.totalEvents, icon: '📅', color: 'text-blue-600', bg: 'bg-blue-50' },
         { label: 'Total Users', value: stats.totalUsers, icon: '👥', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { label: 'Active Events', value: stats.activeEvents, icon: '⚡', color: 'text-purple-600', bg: 'bg-purple-50' },
-        { label: 'Registrations', value: stats.totalRegistrations || '-', icon: '🎫', color: 'text-amber-600', bg: 'bg-amber-50' },
     ];
 
     return (
@@ -57,7 +51,7 @@ export default function AdminHome() {
             </div>
 
             {/* Metrics Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {metrics.map((stat, idx) => (
                     <Card key={idx} className="shadow-soft border-slate-100 flex items-center gap-5">
                         <div className={`w-12 h-12 rounded-xl ${stat.bg} ${stat.color} flex items-center justify-center text-2xl`}>
@@ -110,18 +104,7 @@ export default function AdminHome() {
                 </div>
             </section>
 
-            {/* Platform Status - Simple info card */}
-            <Card className="bg-slate-50 border-slate-100 shadow-none py-4 px-6 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Platform Operational</span>
-                </div>
-                <div className="hidden sm:flex items-center gap-4 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
-                    <span>Node Connected</span>
-                    <span className="w-1 h-1 rounded-full bg-slate-200" />
-                    <span>Latent Sync Stable</span>
-                </div>
-            </Card>
+
         </div>
     );
 }

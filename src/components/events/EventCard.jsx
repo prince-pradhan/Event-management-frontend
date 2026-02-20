@@ -12,10 +12,10 @@ export default function EventCard({ event }) {
   const categoryLabel = getCategoryLabel(category);
   const date = startDate
     ? new Date(startDate).toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      })
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
     : '—';
 
   return (
@@ -40,8 +40,13 @@ export default function EventCard({ event }) {
           {description && (
             <p className="mt-2 text-sm text-slate-600 line-clamp-2">{description}</p>
           )}
-          <div className="mt-auto pt-4 flex justify-between text-sm text-slate-500">
-            <span>{date}</span>
+          <div className="mt-auto pt-4 flex justify-between items-center text-sm text-slate-500">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <span className="truncate">{date}</span>
+              {status === 'DRAFT' && (
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded leading-none">DRAFT</span>
+              )}
+            </div>
             {location?.venue && <span className="truncate ml-2">{location.venue}</span>}
           </div>
         </div>

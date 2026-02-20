@@ -131,7 +131,11 @@ export default function StudentDashboard() {
                         {new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {event.location?.venue}
                       </p>
                     </div>
-                    {isRegistered(event._id) ? (
+                    {event.status === 'DRAFT' ? (
+                      <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">
+                        Draft
+                      </span>
+                    ) : isRegistered(event._id) ? (
                       <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
                         Inscribed
                       </span>

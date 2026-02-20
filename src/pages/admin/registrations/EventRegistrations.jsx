@@ -100,7 +100,7 @@ export default function EventRegistrations() {
                 <div className="flex justify-center mb-6">
                     <div className="w-12 h-12 border-4 border-slate-100 border-t-primary-600 rounded-full animate-spin shadow-inner" />
                 </div>
-                <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Synchronizing Attendee Records...</p>
+                <p className="text-slate-400 font-bold text-sm uppercase tracking-wide">Loading registrations...</p>
             </div>
         );
     }
@@ -119,8 +119,8 @@ export default function EventRegistrations() {
                         <span className="px-3 py-1 bg-slate-900 text-white text-[10px] font-black rounded-full uppercase tracking-widest shadow-lg shadow-slate-200">
                             {registrations.length} Attendees
                         </span>
-                        <p className="text-slate-400 font-bold text-sm">
-                            Real-time registration tracking for this instance.
+                        <p className="text-slate-400 font-medium text-sm">
+                            View and manage all registered participants.
                         </p>
                     </div>
                 </div>
@@ -159,7 +159,7 @@ export default function EventRegistrations() {
                                             🎫
                                         </div>
                                         <h3 className="text-slate-900 font-black tracking-tight text-lg">No Attendees Yet</h3>
-                                        <p className="text-slate-400 font-medium text-sm mt-1 max-w-xs mx-auto">This list is currently empty. Registrations will appear here in real-time as they arrive.</p>
+                                        <p className="text-slate-400 font-medium text-sm mt-1 max-w-xs mx-auto">No one has registered for this event yet.</p>
                                     </td>
                                 </tr>
                             ) : (
@@ -211,8 +211,8 @@ export default function EventRegistrations() {
                     </table>
                 </div>
                 <div className="p-6 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
-                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.4em]">
-                        Advanced Event Management Protocol v2.0
+                    <p className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">
+                        Attendee Data
                     </p>
                     <div className="flex gap-1">
                         {[1, 2, 3].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-slate-200" />)}

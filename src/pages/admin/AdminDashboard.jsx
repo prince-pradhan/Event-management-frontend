@@ -11,7 +11,6 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState([
     { label: 'Total events', value: '-', sub: 'Loading...', icon: '📅' },
     { label: 'Total users', value: '-', sub: 'Loading...', icon: '👥' },
-    { label: 'Total bookings', value: '-', sub: 'Total registrations', icon: '🎫' },
   ]);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +32,6 @@ export default function AdminDashboard() {
         setStats([
           { label: 'Total events', value: totalEvents.toString(), sub: 'Upcoming & past', icon: '📅' },
           { label: 'Total users', value: totalUsers.toString(), sub: 'Students & admins', icon: '👥' },
-          { label: 'Total bookings', value: '—', sub: 'Across events', icon: '🎫' },
         ]);
       } catch (err) {
         console.error('Failed to fetch dashboard stats:', err);
@@ -58,7 +56,7 @@ export default function AdminDashboard() {
       <h1 className="page-heading text-slate-900 mb-2">Admin panel</h1>
       <p className="text-slate-600 mb-10">Overview and quick actions</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
         {stats.map((stat) => (
           <Card key={stat.label} className="flex items-center gap-4 shadow-soft">
             <span className="text-3xl">{stat.icon}</span>

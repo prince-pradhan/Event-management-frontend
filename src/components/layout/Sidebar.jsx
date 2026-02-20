@@ -25,6 +25,13 @@ const navItems = [
             </svg>
         )
     },
+    {
+        name: 'Categories', path: '/admin/categories', icon: (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+        )
+    },
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }) {
@@ -49,7 +56,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                         <div className="w-10 h-10 bg-primary-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-primary-500/30 group-hover:rotate-6 transition-transform">
                             E
                         </div>
-                        <span className="text-xl font-black text-slate-900 tracking-tight">Evento<span className="text-primary-600">.</span></span>
+                        <span className="text-xl font-black text-slate-900 tracking-tight">EduEvents<span className="text-primary-600">.</span></span>
                     </Link>
 
                     {/* Navigation */}
@@ -69,9 +76,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                             >
                                 <span className="group-hover:scale-110 transition-transform">{item.icon}</span>
                                 <span className="font-bold text-sm tracking-tight">{item.name}</span>
-                                {item.name === 'Events' && (
-                                    <span className="ml-auto text-[10px] bg-primary-50 text-primary-600 font-black px-2 py-0.5 rounded-full shadow-sm">Live</span>
-                                )}
+
                             </NavLink>
                         ))}
                     </nav>

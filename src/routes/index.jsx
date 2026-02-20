@@ -24,6 +24,7 @@ import AdminEvents from '../pages/admin/AdminEvents';
 import AdminCreateEvent from '../pages/admin/AdminCreateEvent';
 import AdminEditEvent from '../pages/admin/AdminEditEvent';
 import AdminUsers from '../pages/admin/AdminUsers';
+import AdminCategories from '../pages/admin/AdminCategories';
 import EventRegistrations from '../pages/admin/registrations/EventRegistrations';
 
 const router = createBrowserRouter([
@@ -90,6 +91,7 @@ const router = createBrowserRouter([
       { path: 'events/:id/edit', element: <AdminEditEvent /> },
       { path: 'events/:eventId/registrations', element: <EventRegistrations /> },
       { path: 'users', element: <AdminUsers /> },
+      { path: 'categories', element: <AdminCategories /> },
     ]
   },
 ]);
