@@ -128,11 +128,7 @@ export default function AdminEvents() {
             </tbody>
           </table>
         </div>
-        <div className="p-4 bg-slate-50/20 border-t border-slate-50">
-          <p className="text-[10px] text-slate-300 font-black uppercase tracking-[0.3em] text-center">
-            Event Management System v2.0
-          </p>
-        </div>
+
       </Card>
     </div>
   );

@@ -11,7 +11,7 @@ export default function AdminLayout() {
             <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 z-30 flex items-center justify-between px-6">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-black text-sm">E</div>
-                    <span className="font-black text-slate-900 tracking-tight">Evento Admin</span>
+                    <span className="font-black text-slate-900 tracking-tight">EduEvents Admin</span>
                 </div>
                 <button
                     onClick={() => setIsSidebarOpen(true)}

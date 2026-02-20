@@ -154,7 +154,7 @@ export default function AdminCreateEvent() {
                                     placeholder="e.g. Annual Tech Symposium 2024"
                                     value={formData.title}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all text-slate-900 font-bold placeholder:font-medium placeholder:text-slate-300 shadow-sm"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all text-slate-900 font-bold placeholder:font-medium placeholder:text-slate-300 shadow-sm bg-white"
                                 />
                             </div>
 
@@ -166,7 +166,7 @@ export default function AdminCreateEvent() {
                                     placeholder="Write a compelling description for your event..."
                                     value={formData.description}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all text-slate-700 font-medium placeholder:text-slate-300 shadow-sm"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all text-slate-700 font-medium placeholder:text-slate-300 shadow-sm bg-white"
                                 />
                             </div>
 
@@ -178,7 +178,7 @@ export default function AdminCreateEvent() {
                                     placeholder="https://images.unsplash.com/..."
                                     value={formData.bannerImage}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 text-slate-600 font-medium shadow-sm transition-all"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 text-slate-600 font-medium shadow-sm transition-all bg-white"
                                 />
                                 {formData.bannerImage && (
                                     <div className="mt-6 rounded-2xl overflow-hidden border-4 border-white shadow-lg aspect-video bg-slate-50 relative group">
@@ -210,7 +210,7 @@ export default function AdminCreateEvent() {
                                     required
                                     value={formData.startDate}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-3.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-700 shadow-sm"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-3.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-700 shadow-sm bg-white"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -221,7 +221,7 @@ export default function AdminCreateEvent() {
                                     required
                                     value={formData.endDate}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-3.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-700 shadow-sm"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-3.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-700 shadow-sm bg-white"
                                 />
                             </div>
                         </div>
@@ -235,7 +235,7 @@ export default function AdminCreateEvent() {
                                     placeholder="e.g. Main Auditorium"
                                     value={formData.venue}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm bg-white"
                                 />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -247,7 +247,7 @@ export default function AdminCreateEvent() {
                                         placeholder="Street Address"
                                         value={formData.address}
                                         onChange={handleChange}
-                                        className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm"
+                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm bg-white"
                                     />
                                 </div>
                                 <div>
@@ -258,7 +258,7 @@ export default function AdminCreateEvent() {
                                         placeholder="City / Campus Location"
                                         value={formData.city}
                                         onChange={handleChange}
-                                        className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm"
+                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm bg-white"
                                     />
                                 </div>
                             </div>
@@ -287,7 +287,7 @@ export default function AdminCreateEvent() {
                                     required
                                     value={formData.category}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 bg-slate-50 font-bold text-slate-900 shadow-sm appearance-none"
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 bg-white font-bold text-slate-900 shadow-sm appearance-none"
                                 >
                                     <option value="">Select Category</option>
                                     {categories.map(cat => (
@@ -304,7 +304,7 @@ export default function AdminCreateEvent() {
                                         name="price"
                                         value={formData.price}
                                         onChange={handleChange}
-                                        className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm"
+                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
                                     />
                                 </div>
                                 <div>
@@ -314,7 +314,7 @@ export default function AdminCreateEvent() {
                                         name="totalSeats"
                                         value={formData.totalSeats}
                                         onChange={handleChange}
-                                        className="w-full rounded-2xl border-slate-200 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm"
+                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
                                     />
                                 </div>
                             </div>
@@ -329,7 +329,7 @@ export default function AdminCreateEvent() {
                                             name="registrationStartDate"
                                             value={formData.registrationStartDate}
                                             onChange={handleChange}
-                                            className="w-full rounded-xl border-slate-100 text-sm focus:border-primary-500 font-bold text-slate-600 shadow-sm px-4 py-2.5"
+                                            className="w-full rounded-xl border-2 border-slate-300 text-sm focus:border-primary-500 font-bold text-slate-600 shadow-sm px-4 py-2.5 bg-white"
                                         />
                                     </div>
                                     <div>
@@ -339,7 +339,7 @@ export default function AdminCreateEvent() {
                                             name="registrationEndDate"
                                             value={formData.registrationEndDate}
                                             onChange={handleChange}
-                                            className="w-full rounded-xl border-slate-100 text-sm focus:border-primary-500 font-bold text-slate-600 shadow-sm px-4 py-2.5"
+                                            className="w-full rounded-xl border-2 border-slate-300 text-sm focus:border-primary-500 font-bold text-slate-600 shadow-sm px-4 py-2.5 bg-white"
                                         />
                                     </div>
                                 </div>
@@ -353,7 +353,7 @@ export default function AdminCreateEvent() {
                                 📋
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Form Blueprint</h2>
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Extra Fields</h2>
                                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Attendee Data Requirements</p>
                             </div>
                         </div>
