@@ -54,11 +54,26 @@ export const PAYMENT_STATUS = {
   REFUNDED: 'REFUNDED',
 };
 
-/** Backend: NOTIFICATION_TYPE */
+/** Backend: NOTIFICATION_TYPE (Delivery methods) */
 export const NOTIFICATION_TYPE = {
   EMAIL: 'EMAIL',
   SMS: 'SMS',
   PUSH: 'PUSH',
+};
+
+/** Backend: notification categories */
+export const NOTIFICATION_CATEGORY = {
+  NEW_EVENT: 'NEW_EVENT',
+  EVENT_REMINDER: 'EVENT_REMINDER',
+  EVENT_UPDATED: 'EVENT_UPDATED',
+  SYSTEM: 'SYSTEM',
+};
+
+/** Backend: notification scopes */
+export const NOTIFICATION_SCOPE = {
+  BROADCAST: 'BROADCAST',
+  TARGETED: 'TARGETED',
+  PERSONALIZED: 'PERSONALIZED',
 };
 
 /** Display labels for category names (Category model: name, description) */

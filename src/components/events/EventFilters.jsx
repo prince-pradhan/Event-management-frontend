@@ -33,15 +33,15 @@ export default function EventFilters({ filters, onFilterChange, categories = [] 
           <option value="">All categories</option>
           {hasCategoriesFromApi
             ? categories.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.name}
-                </option>
-              ))
+              <option key={c._id} value={c._id}>
+                {c.name}
+              </option>
+            ))
             : staticOptions.map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
         </select>
       </div>
       <div className="min-w-[180px]">

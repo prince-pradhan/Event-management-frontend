@@ -17,7 +17,7 @@ export default function Events() {
   useEffect(() => {
     categoriesApi.getAll().then((res) => {
       if (res.data?.success && res.data?.categories) setCategories(res.data.categories);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   useEffect(() => {
