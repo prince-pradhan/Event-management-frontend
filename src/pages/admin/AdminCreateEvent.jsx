@@ -30,8 +30,6 @@ export default function AdminCreateEvent() {
         price: 0,
         // Media
         bannerImage: '',
-        // Media
-        bannerImage: '',
     });
 
     const [regFields, setRegFields] = useState([]);

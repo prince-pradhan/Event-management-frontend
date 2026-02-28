@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { APP_NAME, ROUTES } from '../../utils/constants';
 import Button from '../common/Button';
 import UserMenu from './UserMenu';
+import NotificationDropdown from './NotificationDropdown';
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -45,7 +46,10 @@ export default function Header() {
 
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
-              <UserMenu />
+              <>
+                <NotificationDropdown />
+                <UserMenu />
+              </>
             ) : (
               <>
                 <Link to={ROUTES.LOGIN} className="hidden sm:block">
