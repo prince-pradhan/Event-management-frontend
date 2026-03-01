@@ -3,12 +3,11 @@ import { Bell, Check, X, Calendar, Info, AlertTriangle, ExternalLink } from 'luc
 import { useNotifications } from '../../context/NotificationContext';
 import { NOTIFICATION_CATEGORY } from '../../utils/constants';
 import { formatDistanceToNow } from 'date-fns';
-import Button from '../common/Button';
 import { Link } from 'react-router-dom';
 
 export default function NotificationDropdown() {
     const [isOpen, setIsOpen] = useState(false);
-    const { notifications, unreadCount, markAsRead, deleteNotification, loading } = useNotifications();
+    const { notifications, unreadCount, markAsRead, deleteNotification, loading, markAllAsRead } = useNotifications();
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -136,6 +135,14 @@ export default function NotificationDropdown() {
                                                         <ExternalLink className="w-3 h-3 ml-1" />
                                                     </Link>
                                                 )}
+                                                <Link
+                                                    to={`/student/notifications/${n._id}`}
+                                                    onClick={() => setIsOpen(false)}
+                                                    className="mt-2 ml-4 inline-flex items-center text-xs font-semibold text-slate-600 hover:text-slate-800"
+                                                >
+                                                    View Details
+                                                    <ExternalLink className="w-3 h-3 ml-1" />
+                                                </Link>
                                             </div>
                                         </div>
                                     </div>
@@ -145,7 +152,11 @@ export default function NotificationDropdown() {
                     </div>
 
                     <div className="p-3 border-t border-slate-100 text-center">
-                        <button className="text-xs font-semibold text-slate-500 hover:text-primary-600 transition-colors">
+                        <button
+                            onClick={() => markAllAsRead()}
+                            disabled={unreadCount === 0}
+                            className={`text-xs font-semibold transition-colors ${unreadCount === 0 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-primary-600'}`}
+                        >
                             Mark all as read
                         </button>
                     </div>

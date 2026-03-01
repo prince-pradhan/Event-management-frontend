@@ -38,9 +38,10 @@ export default function Home() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await eventsApi.getAll({ limit: 3, page: 1 });
+        // Fetch only events marked as UPCOMING by admin
+        const response = await eventsApi.getAll({ status: 'UPCOMING', limit: 6, page: 1 });
         if (response.data.success) {
-          setUpcomingEvents(response.data.events.slice(0, 3));
+          setUpcomingEvents(response.data.events || []);
         }
       } catch (error) {
         console.error('Failed to fetch events', error);
@@ -221,8 +222,8 @@ export default function Home() {
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Upcoming Events</h2>
               <p className="text-lg text-slate-600">Don't miss out on what's happening next.</p>
             </div>
-            <Link to={ROUTES.EVENTS} className="hidden md:inline-flex items-center font-bold text-primary-600 hover:text-primary-700 transition-colors">
-              View All Events <ArrowRight className="ml-2 w-4 h-4" />
+            <Link to={`${ROUTES.EVENTS}?status=UPCOMING`} className="hidden md:inline-flex items-center font-bold text-primary-600 hover:text-primary-700 transition-colors">
+              View Upcoming <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
           </div>
 
@@ -247,8 +248,8 @@ export default function Home() {
           )}
           
           <div className="mt-10 text-center md:hidden">
-            <Link to={ROUTES.EVENTS}>
-              <Button className="w-full">View All Events</Button>
+            <Link to={`${ROUTES.EVENTS}?status=UPCOMING`}>
+              <Button className="w-full">View Upcoming</Button>
             </Link>
           </div>
         </div>

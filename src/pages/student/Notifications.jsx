@@ -1,4 +1,5 @@
-import { Bell, Check, Trash2, Calendar, Info, AlertTriangle, ExternalLink } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Bell, Check, Trash2, Calendar, Info, AlertTriangle, ExternalLink, Filter } from 'lucide-react';
 import { useNotifications } from '../../context/NotificationContext';
 import { NOTIFICATION_CATEGORY } from '../../utils/constants';
 import { formatDistanceToNow } from 'date-fns';
@@ -7,7 +8,9 @@ import Button from '../../components/common/Button';
 import { Link } from 'react-router-dom';
 
 export default function Notifications() {
-  const { notifications, loading, markAsRead, deleteNotification, unreadCount } = useNotifications();
+  const { notifications, loading, markAsRead, deleteNotification, unreadCount, pagination, fetchNotifications, loadMore } = useNotifications();
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [category, setCategory] = useState('ALL');
 
   const getIcon = (category) => {
     switch (category) {
@@ -30,6 +33,26 @@ export default function Notifications() {
     }
   };
 
+  const categories = useMemo(() => ([
+    { value: 'ALL', label: 'All' },
+    { value: NOTIFICATION_CATEGORY.NEW_EVENT, label: 'New Events' },
+    { value: NOTIFICATION_CATEGORY.EVENT_REMINDER, label: 'Reminders' },
+    { value: NOTIFICATION_CATEGORY.EVENT_UPDATED, label: 'Updates' },
+    { value: NOTIFICATION_CATEGORY.SYSTEM, label: 'System' },
+  ]), []);
+
+  const filtered = useMemo(() => {
+    return notifications.filter(n => {
+      if (unreadOnly && n.read) return false;
+      if (category !== 'ALL' && n.category !== category) return false;
+      return true;
+    });
+  }, [notifications, unreadOnly, category]);
+
+  const onRefresh = async () => {
+    await fetchNotifications({ page: 1, limit: pagination.limit, unreadOnly, append: false });
+  };
+
   return (
     <div className="container-app py-10">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -37,22 +60,51 @@ export default function Notifications() {
           <h1 className="page-heading text-slate-900 mb-1">Notifications</h1>
           <p className="text-slate-600">Stay updated with event reminders and campus alerts</p>
         </div>
-        {unreadCount > 0 && (
-          <div className="px-4 py-2 bg-primary-50 text-primary-700 rounded-2xl border border-primary-100 text-sm font-bold flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-primary-600 animate-pulse"></span>
-            {unreadCount} UNREAD NOTIFICATIONS
+        <div className="flex flex-wrap items-center gap-3">
+          {unreadCount > 0 && (
+            <div className="px-4 py-2 bg-primary-50 text-primary-700 rounded-2xl border border-primary-100 text-sm font-bold flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-primary-600 animate-pulse"></span>
+              {unreadCount} UNREAD
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500">Show</span>
+            <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600">
+              <input
+                type="checkbox"
+                checked={unreadOnly}
+                onChange={(e) => { setUnreadOnly(e.target.checked); onRefresh(); }}
+                className="rounded border-slate-300"
+              />
+              Unread only
+            </label>
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-slate-400" />
+            <select
+              value={category}
+              onChange={(e) => { setCategory(e.target.value); }}
+              className="text-xs font-semibold border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white text-slate-700"
+            >
+              {categories.map(c => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+          <Button size="sm" variant="secondary" onClick={onRefresh} className="py-1.5 h-auto text-[11px] font-black tracking-widest uppercase">
+            Refresh
+          </Button>
+        </div>
       </div>
 
       <Card padding={false} className="overflow-hidden shadow-soft-lg border border-slate-100/50 bg-white">
         <div className="divide-y divide-slate-100">
-          {loading && notifications.length === 0 ? (
+          {loading && filtered.length === 0 ? (
             <div className="p-20 text-center">
               <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4" />
               <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Synchronizing your alerts...</p>
             </div>
-          ) : notifications.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <div className="p-20 text-center">
               <div className="w-16 h-16 bg-slate-50 text-slate-200 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
                 <Bell className="w-8 h-8" />
@@ -61,7 +113,7 @@ export default function Notifications() {
               <p className="text-slate-500 font-medium">We'll notify you here when something important happens.</p>
             </div>
           ) : (
-            notifications.map((n) => (
+            filtered.map((n) => (
               <div
                 key={n._id}
                 className={`p-6 flex gap-5 transition-all relative group ${!n.read ? 'bg-primary-50/20' : 'hover:bg-slate-50/50'}`}
@@ -94,6 +146,12 @@ export default function Notifications() {
                         Explore Event <ExternalLink className="w-3 h-3 ml-1.5" />
                       </Link>
                     )}
+                    <Link
+                      to={`/student/notifications/${n._id}`}
+                      className="inline-flex items-center text-xs font-black text-slate-600 hover:text-slate-800 uppercase tracking-widest transition-colors"
+                    >
+                      Read More <ExternalLink className="w-3 h-3 ml-1.5" />
+                    </Link>
 
                     <div className="flex items-center gap-2 ml-auto">
                       {!n.read && (
@@ -120,11 +178,22 @@ export default function Notifications() {
             ))
           )}
         </div>
-        {notifications.length > 0 && (
+        {filtered.length > 0 && (
           <div className="p-6 bg-slate-50/50 border-t border-slate-100 text-center">
-            <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-              End of notifications
-            </p>
+            {pagination.hasMore ? (
+              <Button
+                variant="secondary"
+                onClick={() => loadMore({ unreadOnly })}
+                disabled={loading}
+                className="py-2 h-auto text-[11px] font-black tracking-widest uppercase"
+              >
+                Load more
+              </Button>
+            ) : (
+              <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                End of notifications
+              </p>
+            )}
           </div>
         )}
       </Card>
