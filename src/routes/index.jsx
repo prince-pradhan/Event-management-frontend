@@ -16,6 +16,7 @@ import StudentDashboard from '../pages/student/Dashboard';
 import StudentProfile from '../pages/student/Profile';
 import MyRegistrations from '../pages/student/MyRegistrations';
 import Notifications from '../pages/student/Notifications';
+import NotificationDetail from '../pages/student/NotificationDetail';
 
 import AdminLayout from '../components/layout/AdminLayout';
 import AdminHome from '../pages/admin/AdminHome';
@@ -26,6 +27,7 @@ import AdminEditEvent from '../pages/admin/events/AdminEditEvent';
 import AdminUsers from '../pages/admin/AdminUsers';
 import AdminCategories from '../pages/admin/AdminCategories';
 import EventRegistrations from '../pages/admin/registrations/EventRegistrations';
+import AdminNotifications from '../pages/admin/AdminNotifications';
 
 const router = createBrowserRouter([
   {
@@ -68,6 +70,14 @@ const router = createBrowserRouter([
               </ProtectedRoute>
             ),
           },
+          {
+            path: 'notifications/:id',
+            element: (
+              <ProtectedRoute>
+                <NotificationDetail />
+              </ProtectedRoute>
+            ),
+          },
         ]
       },
       { path: '404', element: <NotFound /> },
@@ -92,6 +102,7 @@ const router = createBrowserRouter([
       { path: 'events/:eventId/registrations', element: <EventRegistrations /> },
       { path: 'users', element: <AdminUsers /> },
       { path: 'categories', element: <AdminCategories /> },
+      { path: 'notifications', element: <AdminNotifications /> },
     ]
   },
 ]);

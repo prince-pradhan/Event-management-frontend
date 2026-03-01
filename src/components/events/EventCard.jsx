@@ -46,6 +46,9 @@ export default function EventCard({ event }) {
               {status === 'DRAFT' && (
                 <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded leading-none">DRAFT</span>
               )}
+              {status === 'UPCOMING' && (
+                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded leading-none">UPCOMING</span>
+              )}
             </div>
             {location?.venue && <span className="truncate ml-2">{location.venue}</span>}
           </div>

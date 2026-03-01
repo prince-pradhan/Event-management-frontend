@@ -56,6 +56,7 @@ export default function EventFilters({ filters, onFilterChange, categories = [] 
             hover:border-slate-300 transition-colors"
         >
           <option value="">All statuses</option>
+          <option value="UPCOMING">Upcoming</option>
           <option value="PUBLISHED">Published</option>
           <option value="DRAFT">Draft</option>
           <option value="COMPLETED">Completed</option>
