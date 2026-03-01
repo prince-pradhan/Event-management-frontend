@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { eventsApi } from '../../../api/endpoints';
+import { eventsApi } from '../api/endpoints';
 
 export const useAdminEvents = () => {
     const [events, setEvents] = useState([]);
@@ -70,3 +70,4 @@ export const useAdminEvents = () => {
         refreshEvents: fetchEvents
     };
 };
+

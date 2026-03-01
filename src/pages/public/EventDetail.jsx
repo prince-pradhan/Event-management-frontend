@@ -1,13 +1,13 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { eventsApi } from '../api/endpoints'; // Ensure endpoints index exports eventsApi
-import { authApi } from '../api/endpoints/auth'; // Ensure this exists if needed, or use apiClient directly
-import apiClient from '../api/apiClient';
-import { useAuth } from '../context/AuthContext';
-import Card from '../components/common/Card';
-import Button from '../components/common/Button';
-import Input from '../components/common/Input'; // Assuming Input component exists
-import { getCategoryLabel, EVENT_STATUS, ROUTES } from '../utils/constants';
+import { eventsApi } from '../../api/endpoints'; // Ensure endpoints index exports eventsApi
+import { authApi } from '../../api/endpoints/auth'; // Ensure this exists if needed, or use apiClient directly
+import apiClient from '../../api/apiClient';
+import { useAuth } from '../../context/AuthContext';
+import Card from '../../components/common/Card';
+import Button from '../../components/common/Button';
+import Input from '../../components/common/Input'; // Assuming Input component exists
+import { getCategoryLabel, EVENT_STATUS, ROUTES } from '../../utils/constants';
 
 /**
  * Backend event: title, description, category (populated), organizer (populated),

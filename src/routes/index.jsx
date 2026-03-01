@@ -3,9 +3,9 @@ import Layout from '../components/layout/Layout';
 import ProtectedRoute from './ProtectedRoute';
 import { ROUTES } from '../utils/constants';
 
-import Home from '../pages/Home';
-import Events from '../pages/Events';
-import EventDetail from '../pages/EventDetail';
+import Home from '../pages/public/Home';
+import Events from '../pages/public/Events';
+import EventDetail from '../pages/public/EventDetail';
 import NotFound from '../pages/NotFound';
 
 import Login from '../pages/auth/Login';
@@ -20,9 +20,9 @@ import Notifications from '../pages/student/Notifications';
 import AdminLayout from '../components/layout/AdminLayout';
 import AdminHome from '../pages/admin/AdminHome';
 import AdminDashboard from '../pages/admin/AdminDashboard';
-import AdminEvents from '../pages/admin/AdminEvents';
-import AdminCreateEvent from '../pages/admin/AdminCreateEvent';
-import AdminEditEvent from '../pages/admin/AdminEditEvent';
+import AdminEvents from '../pages/admin/events/AdminEvents';
+import AdminCreateEvent from '../pages/admin/events/AdminCreateEvent';
+import AdminEditEvent from '../pages/admin/events/AdminEditEvent';
 import AdminUsers from '../pages/admin/AdminUsers';
 import AdminCategories from '../pages/admin/AdminCategories';
 import EventRegistrations from '../pages/admin/registrations/EventRegistrations';

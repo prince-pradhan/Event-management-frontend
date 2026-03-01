@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import { categoriesApi } from '../../api/endpoints/categories';
-import { eventsApi } from '../../api/endpoints/events';
-import { ROUTES, EVENT_STATUS } from '../../utils/constants';
-import Button from '../../components/common/Button';
-import Card from '../../components/common/Card';
+import { useNavigate, Link } from 'react-router-dom';
+import { categoriesApi } from '../../../api/endpoints/categories';
+import { eventsApi } from '../../../api/endpoints/events';
+import { ROUTES, EVENT_STATUS } from '../../../utils/constants';
+import Button from '../../../components/common/Button';
+import Card from '../../../components/common/Card';
 
-export default function AdminEditEvent() {
-    const { id } = useParams();
+export default function AdminCreateEvent() {
     const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
     const [formData, setFormData] = useState({
@@ -34,65 +32,17 @@ export default function AdminEditEvent() {
         bannerImage: '',
     });
 
-    const [initialSeats, setInitialSeats] = useState({ total: 0, available: 0 });
     const [regFields, setRegFields] = useState([]);
+    const [newField, setNewField] = useState({ label: '', name: '', fieldType: 'text', required: false });
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [catRes, eventRes] = await Promise.all([
-                    categoriesApi.getAll(),
-                    eventsApi.getById(id),
-                ]);
-
-                if (catRes.data.success) setCategories(catRes.data.categories);
-
-                if (eventRes.data.success) {
-                    const event = eventRes.data.event;
-
-                    // Helper to format date for datetime-local input (YYYY-MM-DDTHH:mm) - Local Time
-                    const toLocalISO = (d) => {
-                        if (!d) return '';
-                        const date = new Date(d);
-                        const pad = (n) => n.toString().padStart(2, '0');
-                        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-                    };
-
-                    setFormData({
-                        title: event.title,
-                        description: event.description || '',
-                        category: typeof event.category === 'object' ? event.category._id : event.category,
-                        venue: event.location?.venue || '',
-                        address: event.location?.address || '',
-                        city: event.location?.city || '',
-                        startDate: toLocalISO(event.startDate),
-                        endDate: toLocalISO(event.endDate),
-                        registrationStartDate: toLocalISO(event.registrationStartDate),
-                        registrationEndDate: toLocalISO(event.registrationEndDate),
-                        totalSeats: event.totalSeats || '',
-                        price: event.price || 0,
-                        bannerImage: event.bannerImage || '',
-                    });
-
-                    setInitialSeats({
-                        total: event.totalSeats || 0,
-                        available: event.availableSeats || 0
-                    });
-
-                    if (event.registrationFields) {
-                        setRegFields(event.registrationFields);
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to load data', err);
-                setError('Failed to load event data');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [id]);
+        // Fetch categories
+        categoriesApi.getAll()
+            .then(res => {
+                if (res.data.success) setCategories(res.data.categories);
+            })
+            .catch(err => console.error('Failed to fetch categories', err));
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -100,33 +50,28 @@ export default function AdminEditEvent() {
     };
 
     const addRegField = () => {
-        // Disabled per backend constraints
-        alert('Adding new fields to an existing event is not supported by the backend.');
+        if (!newField.label || !newField.name) return;
+        setRegFields(prev => [...prev, newField]);
+        setNewField({ label: '', name: '', fieldType: 'text', required: false });
     };
 
     const removeRegField = (index) => {
-        // Disabled per backend constraints
-        alert('Removing fields from an existing event is not supported by the backend.');
+        setRegFields(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setSaving(true);
+        setLoading(true);
         setError('');
 
         try {
             // Helper to convert local ISO string back to UTC
             const toUTC = (dateStr) => dateStr ? new Date(dateStr).toISOString() : null;
 
-            // Simple capacity sync logic:
-            // adjust availableSeats by the same amount totalSeats changed
-            const newTotal = Number(formData.totalSeats);
-            const diff = newTotal - initialSeats.total;
-            const newAvailable = Math.max(0, initialSeats.available + diff);
-
             // Construct payload
             const payload = {
                 ...formData,
+                status: EVENT_STATUS.DRAFT,
                 startDate: toUTC(formData.startDate),
                 endDate: toUTC(formData.endDate),
                 registrationStartDate: toUTC(formData.registrationStartDate),
@@ -136,30 +81,23 @@ export default function AdminEditEvent() {
                     address: formData.address,
                     city: formData.city,
                 },
-                // registrationFields: regFields, // Backend rejects updates to this anyway
-                totalSeats: newTotal,
-                availableSeats: newAvailable,
+                registrationFields: regFields,
+                // Ensure numbers are numbers
+                totalSeats: Number(formData.totalSeats),
                 price: Number(formData.price),
             };
 
-            const response = await eventsApi.update(id, payload);
+            const response = await eventsApi.create(payload);
             if (response.data.success) {
                 navigate(ROUTES.ADMIN_EVENTS);
             }
         } catch (err) {
             console.error(err);
-            setError(err.response?.data?.message || 'Failed to update event');
+            setError(err.response?.data?.message || 'Failed to create event');
         } finally {
-            setSaving(false);
+            setLoading(false);
         }
     };
-
-    if (loading) return (
-        <div className="p-20 text-center">
-            <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-slate-500 font-medium">Loading editor...</p>
-        </div>
-    );
 
     return (
         <div className="max-w-5xl mx-auto space-y-10">
@@ -168,13 +106,13 @@ export default function AdminEditEvent() {
                     <Link to={ROUTES.ADMIN_EVENTS} className="text-sm font-bold text-primary-600 hover:text-primary-700 mb-2 inline-block uppercase tracking-wider">
                         ← Back to events
                     </Link>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Edit Event</h1>
-                    <p className="mt-2 text-slate-500 font-medium">Refining the details for your upcoming showcase.</p>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Create New Event</h1>
+                    <p className="mt-2 text-slate-500 font-medium">Bring your vision to life by setting up a new campus event.</p>
                 </div>
                 <div className="flex gap-4">
                     <Button variant="secondary" onClick={() => navigate(ROUTES.ADMIN_EVENTS)} className="px-6 border-slate-200">Cancel</Button>
-                    <Button type="submit" form="edit-event-form" disabled={saving} className="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-200 transition-all active:scale-[0.98]">
-                        {saving ? 'Saving...' : 'Update Event'}
+                    <Button type="submit" form="create-event-form" disabled={loading} className="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-200 transition-all active:scale-[0.98]">
+                        {loading ? 'Creating...' : 'Publish Event'}
                     </Button>
                 </div>
             </div>
@@ -183,13 +121,13 @@ export default function AdminEditEvent() {
                 <div className="mb-8 p-5 bg-red-50 text-red-700 rounded-2xl border border-red-100 flex items-start gap-4">
                     <span className="text-2xl">⚠️</span>
                     <div>
-                        <h3 className="font-black uppercase tracking-widest text-[10px] mb-1">Error Encountered</h3>
+                        <h3 className="font-black uppercase tracking-widest text-[10px] mb-1">Creation Failed</h3>
                         <p className="text-sm font-medium opacity-90">{error}</p>
                     </div>
                 </div>
             )}
 
-            <form id="edit-event-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <form id="create-event-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
                 {/* Left Column - Main Details */}
                 <div className="lg:col-span-2 space-y-10">
@@ -199,7 +137,7 @@ export default function AdminEditEvent() {
                                 📝
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Core Details</h2>
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Event Details</h2>
                                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Title, Banner & Story</p>
                             </div>
                         </div>
@@ -211,7 +149,7 @@ export default function AdminEditEvent() {
                                     type="text"
                                     name="title"
                                     required
-                                    placeholder="Enter a catchy title..."
+                                    placeholder="e.g. Annual Tech Symposium 2024"
                                     value={formData.title}
                                     onChange={handleChange}
                                     className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all text-slate-900 font-bold placeholder:font-medium placeholder:text-slate-300 shadow-sm bg-white"
@@ -223,7 +161,7 @@ export default function AdminEditEvent() {
                                 <textarea
                                     name="description"
                                     rows="6"
-                                    placeholder="Tell the story of your event..."
+                                    placeholder="Write a compelling description for your event..."
                                     value={formData.description}
                                     onChange={handleChange}
                                     className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 transition-all text-slate-700 font-medium placeholder:text-slate-300 shadow-sm bg-white"
@@ -304,7 +242,7 @@ export default function AdminEditEvent() {
                                     <input
                                         type="text"
                                         name="address"
-                                        placeholder="Street, Milestone..."
+                                        placeholder="Street Address"
                                         value={formData.address}
                                         onChange={handleChange}
                                         className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm bg-white"
@@ -315,7 +253,7 @@ export default function AdminEditEvent() {
                                     <input
                                         type="text"
                                         name="city"
-                                        placeholder="City Name"
+                                        placeholder="City / Campus Location"
                                         value={formData.city}
                                         onChange={handleChange}
                                         className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-bold text-slate-800 shadow-sm bg-white"
@@ -407,7 +345,7 @@ export default function AdminEditEvent() {
                         </div>
                     </section>
 
-                    {/* <section className="bg-white rounded-3xl shadow-soft-xl border border-slate-100/50 p-7">
+                    <section className="bg-white rounded-3xl shadow-soft-xl border border-slate-100/50 p-7">
                         <div className="flex items-center gap-4 mb-6">
                             <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl text-xl shadow-sm border border-amber-100/50">
                                 📋
@@ -418,34 +356,71 @@ export default function AdminEditEvent() {
                             </div>
                         </div>
 
-
-
-                        <div className="space-y-3 mb-8 opacity-70 cursor-not-allowed">
+                        <div className="space-y-3 mb-8">
                             {regFields.length === 0 && (
                                 <div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">No custom fields defined</p>
+                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">No custom fields added</p>
                                 </div>
                             )}
                             {regFields.map((field, idx) => (
-                                <div key={idx} className="flex items-center gap-3 bg-white border border-slate-100 p-4 rounded-2xl shadow-sm group">
+                                <div key={idx} className="flex items-center gap-3 bg-white border border-slate-100 p-4 rounded-2xl shadow-sm group hover:border-red-100 transition-all">
                                     <div className="flex-1 min-w-0">
                                         <p className="font-black text-[11px] text-slate-800 uppercase tracking-widest truncate">{field.label}</p>
-                                        <p className="text-[10px] font-bold text-slate-400 mt-0.5 lowercase tracking-wider">{field.fieldType} • {field.required ? 'Required' : 'Optional'}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 mt-0.5 shadow-none lowercase tracking-wider">{field.fieldType} • {field.required ? 'Required' : 'Optional'}</p>
                                     </div>
-                                    <div className="p-2 text-slate-200">
+                                    <button type="button" onClick={() => removeRegField(idx)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
                                         ✕
-                                    </div>
+                                    </button>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 flex flex-col items-center justify-center text-center opacity-40 select-none grayscale cursor-not-allowed">
-                            <div className="text-2xl mb-2">🔒</div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Blueprint Locked</p>
+                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200/50 space-y-4 shadow-inner">
+                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Build New Input</h3>
+                            <input
+                                type="text"
+                                placeholder="Field Label (e.g. Diet Preference)"
+                                value={newField.label}
+                                onChange={(e) => setNewField(prev => ({ ...prev, label: e.target.value }))}
+                                className="w-full rounded-xl border-slate-200 text-sm focus:border-primary-500 font-bold px-4 py-3 shadow-sm"
+                            />
+                            <div className="grid grid-cols-2 gap-4">
+                                <input
+                                    type="text"
+                                    placeholder="Unique Key"
+                                    value={newField.name}
+                                    onChange={(e) => setNewField(prev => ({ ...prev, name: e.target.value }))}
+                                    className="w-full rounded-xl border-slate-200 text-sm focus:border-primary-500 font-bold px-4 py-3 shadow-sm"
+                                />
+                                <select
+                                    value={newField.fieldType}
+                                    onChange={(e) => setNewField(prev => ({ ...prev, fieldType: e.target.value }))}
+                                    className="w-full rounded-xl border-slate-200 text-sm focus:border-primary-500 font-bold px-4 py-3 shadow-sm appearance-none bg-white"
+                                >
+                                    <option value="text">Text</option>
+                                    <option value="number">Number</option>
+                                    <option value="checkbox">Checkbox</option>
+                                </select>
+                            </div>
+                            <div className="flex items-center justify-between px-2 pt-2">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        checked={newField.required}
+                                        onChange={(e) => setNewField(prev => ({ ...prev, required: e.target.checked }))}
+                                        className="w-5 h-5 rounded border-slate-300 text-primary-600 focus:ring-primary-500 transition-all cursor-pointer"
+                                    />
+                                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest group-hover:text-slate-700 transition-colors">Mandatory Field</span>
+                                </label>
+                                <Button size="sm" onClick={addRegField} variant="secondary" className="px-5 py-2 font-black text-[10px] uppercase tracking-widest bg-white hover:bg-slate-900 hover:text-white transition-all border-slate-200">
+                                    Add Property
+                                </Button>
+                            </div>
                         </div>
-                    </section> */}
+                    </section>
                 </div>
             </form>
         </div>
     );
 }
+
