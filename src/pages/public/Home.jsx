@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { ROUTES, USER_ROLE } from '../utils/constants';
-import Button from '../components/common/Button';
+import { useAuth } from '../../context/AuthContext';
+import { ROUTES, USER_ROLE } from '../../utils/constants';
+import Button from '../../components/common/Button';
 
 const FEATURES = [
     { title: 'Seminars', desc: 'Talks and industry insights in one place.', icon: '🎤' },

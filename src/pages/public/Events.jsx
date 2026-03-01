@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { eventsApi, categoriesApi } from '../api/endpoints';
-import EventCard from '../components/events/EventCard';
-import EventFilters from '../components/events/EventFilters';
+import { eventsApi, categoriesApi } from '../../api/endpoints';
+import EventCard from '../../components/events/EventCard';
+import EventFilters from '../../components/events/EventFilters';
 
 /**
  * Backend: GET /api/events?category,status,search,page,limit

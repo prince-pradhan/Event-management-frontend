@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import { ROUTES } from '../../utils/constants';
-import { useAdminEvents } from '../../features/admin-events/hooks/useAdminEvents';
-import StatusDropdown from '../../features/admin-events/components/StatusDropdown';
+import Card from '../../../components/common/Card';
+import Button from '../../../components/common/Button';
+import { ROUTES } from '../../../utils/constants';
+import { useAdminEvents } from '../../../hooks/useAdminEvents';
+import StatusDropdown from './components/StatusDropdown';
 
 function formatDate(dateStr) {
   return dateStr ? new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
@@ -133,3 +133,4 @@ export default function AdminEvents() {
     </div>
   );
 }
+

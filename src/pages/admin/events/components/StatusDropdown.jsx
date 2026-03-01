@@ -1,5 +1,5 @@
 import React from 'react';
-import { EVENT_STATUS } from '../../../utils/constants';
+import { EVENT_STATUS } from '../../../../utils/constants';
 
 const StatusDropdown = ({ status, onChange, className = "" }) => {
     const getStatusStyles = (s) => {
@@ -31,3 +31,4 @@ const StatusDropdown = ({ status, onChange, className = "" }) => {
 };
 
 export default StatusDropdown;
+
