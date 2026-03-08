@@ -151,7 +151,7 @@ export default function NotificationDropdown() {
                         )}
                     </div>
 
-                    <div className="p-3 border-t border-slate-100 text-center">
+                    <div className="p-3 border-t border-slate-100 flex items-center justify-between gap-3">
                         <button
                             onClick={() => markAllAsRead()}
                             disabled={unreadCount === 0}
@@ -159,6 +159,13 @@ export default function NotificationDropdown() {
                         >
                             Mark all as read
                         </button>
+                        <Link
+                            to="/student/notifications"
+                            onClick={() => setIsOpen(false)}
+                            className="text-xs font-semibold text-primary-600 hover:text-primary-700"
+                        >
+                            View all
+                        </Link>
                     </div>
                 </div>
             )}
