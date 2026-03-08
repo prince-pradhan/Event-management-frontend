@@ -36,6 +36,8 @@ export default function AdminEditEvent() {
 
     const [initialSeats, setInitialSeats] = useState({ total: 0, available: 0 });
     const [regFields, setRegFields] = useState([]);
+    const [bannerFile, setBannerFile] = useState(null);
+    const [bannerPreview, setBannerPreview] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -118,6 +120,29 @@ export default function AdminEditEvent() {
             // Helper to convert local ISO string back to UTC
             const toUTC = (dateStr) => dateStr ? new Date(dateStr).toISOString() : null;
 
+            if (!formData.startDate || !formData.endDate) {
+                setError('Please provide both start and end date');
+                setSaving(false);
+                return;
+            }
+            const startLocal = new Date(formData.startDate);
+            const endLocal = new Date(formData.endDate);
+            if (endLocal <= startLocal) {
+                setError('End date must be after start date');
+                setSaving(false);
+                return;
+            }
+            if (Number(formData.price) < 0) {
+                setError('Price cannot be negative');
+                setSaving(false);
+                return;
+            }
+            if (Number(formData.totalSeats) < 0) {
+                setError('Max seats cannot be negative');
+                setSaving(false);
+                return;
+            }
+
             // Simple capacity sync logic:
             // adjust availableSeats by the same amount totalSeats changed
             const newTotal = Number(formData.totalSeats);
@@ -141,6 +166,7 @@ export default function AdminEditEvent() {
                 availableSeats: newAvailable,
                 price: Number(formData.price),
             };
+            delete payload.bannerImage; // banner updates go via dedicated upload endpoint
 
             const response = await eventsApi.update(id, payload);
             if (response.data.success) {
@@ -236,13 +262,62 @@ export default function AdminEditEvent() {
                                     type="text"
                                     name="bannerImage"
                                     placeholder="https://images.unsplash.com/..."
-                                    value={formData.bannerImage}
+                                    value={typeof formData.bannerImage === 'object' ? (formData.bannerImage.url || '') : (formData.bannerImage || '')}
                                     onChange={handleChange}
                                     className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 text-slate-600 font-medium shadow-sm transition-all bg-white"
                                 />
-                                {formData.bannerImage && (
+                                <div className="mt-6">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Or Upload New Banner</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0] || null;
+                                            setBannerFile(file);
+                                            setBannerPreview(file ? URL.createObjectURL(file) : '');
+                                        }}
+                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-3 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 text-slate-600 font-medium shadow-sm transition-all bg-white"
+                                    />
+                                    <div className="mt-4">
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            disabled={!bannerFile}
+                                            onClick={async () => {
+                                                if (!bannerFile) return;
+                                                try {
+                                                    setSaving(true);
+                                                    const res = await eventsApi.patchBanner(id, bannerFile);
+                                                    if (res.data?.success && res.data?.bannerImage) {
+                                                        setFormData(prev => ({ ...prev, bannerImage: res.data.bannerImage }));
+                                                        setBannerFile(null);
+                                                        setBannerPreview('');
+                                                    }
+                                                } catch (e) {
+                                                    setError(e.response?.data?.message || 'Failed to upload banner');
+                                                } finally {
+                                                    setSaving(false);
+                                                }
+                                            }}
+                                            className="px-5"
+                                        >
+                                            Upload New Banner
+                                        </Button>
+                                    </div>
+                                </div>
+                                {(bannerPreview || formData.bannerImage) && (
                                     <div className="mt-6 rounded-2xl overflow-hidden border-4 border-white shadow-lg aspect-video bg-slate-50 relative group">
-                                        <img src={formData.bannerImage} alt="Preview" className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-500" />
+                                        <img
+                                            src={
+                                                bannerPreview ||
+                                                (typeof formData.bannerImage === 'object'
+                                                    ? (formData.bannerImage.url || '')
+                                                    : (formData.bannerImage || '')
+                                                )
+                                            }
+                                            alt="Preview"
+                                            className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-500"
+                                        />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                                     </div>
                                 )}
@@ -362,6 +437,7 @@ export default function AdminEditEvent() {
                                     <input
                                         type="number"
                                         name="price"
+                                    min="0"
                                         value={formData.price}
                                         onChange={handleChange}
                                         className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
@@ -372,6 +448,7 @@ export default function AdminEditEvent() {
                                     <input
                                         type="number"
                                         name="totalSeats"
+                                    min="0"
                                         value={formData.totalSeats}
                                         onChange={handleChange}
                                         className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"

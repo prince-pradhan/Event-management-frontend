@@ -10,6 +10,11 @@ export default defineConfig({
         target: 'http://localhost:7100',
         changeOrigin: true,
       },
+      '/socket.io': {
+        target: 'http://localhost:7100',
+        changeOrigin: true,
+        ws: true,
+      },
     },
   },
 });

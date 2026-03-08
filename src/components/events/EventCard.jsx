@@ -23,7 +23,7 @@ export default function EventCard({ event }) {
       <Card padding={false} hover className="h-full flex flex-col">
         {bannerImage ? (
           <img
-            src={bannerImage}
+            src={typeof bannerImage === 'object' ? (bannerImage.url || '') : bannerImage}
             alt={title}
             className="w-full h-44 object-cover rounded-t-2xl"
           />
