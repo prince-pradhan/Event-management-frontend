@@ -19,4 +19,15 @@ export const authApi = {
   getUsers: (params) => apiClient.get(`${AUTH_BASE}/user`, { params }),
   /** Google sign-in: send ID token to backend */
   googleLogin: (idToken) => apiClient.post(`${AUTH_BASE}/google`, { token: idToken }),
+  updateProfilePicture: (fileOrBase64) => {
+    if (fileOrBase64 instanceof File) {
+      const form = new FormData();
+      form.append('profilePic', fileOrBase64);
+      return apiClient.patch(`${AUTH_BASE}/profile-picture`, form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } else {
+      return apiClient.patch(`${AUTH_BASE}/profile-picture`, { profilePic: fileOrBase64 });
+    }
+  },
 };

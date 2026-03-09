@@ -34,6 +34,8 @@ export default function AdminCreateEvent() {
 
     const [regFields, setRegFields] = useState([]);
     const [newField, setNewField] = useState({ label: '', name: '', fieldType: 'text', required: false });
+    const [bannerFile, setBannerFile] = useState(null);
+    const [bannerPreview, setBannerPreview] = useState('');
 
     useEffect(() => {
         // Fetch categories
@@ -68,9 +70,35 @@ export default function AdminCreateEvent() {
             // Helper to convert local ISO string back to UTC
             const toUTC = (dateStr) => dateStr ? new Date(dateStr).toISOString() : null;
 
+            // Client-side validation
+            if (!formData.startDate || !formData.endDate) {
+                setError('Please provide both start and end date');
+                setLoading(false);
+                return;
+            }
+            const start = new Date(formData.startDate);
+            const end = new Date(formData.endDate);
+            if (end <= start) {
+                setError('End date must be after start date');
+                setLoading(false);
+                return;
+            }
+            if (Number(formData.price) < 0) {
+                setError('Price cannot be negative');
+                setLoading(false);
+                return;
+            }
+            if (Number(formData.totalSeats) < 0) {
+                setError('Max seats cannot be negative');
+                setLoading(false);
+                return;
+            }
+
             // Construct payload
             const payload = {
-                ...formData,
+                title: formData.title,
+                description: formData.description,
+                category: formData.category,
                 status: EVENT_STATUS.DRAFT,
                 startDate: toUTC(formData.startDate),
                 endDate: toUTC(formData.endDate),
@@ -82,10 +110,18 @@ export default function AdminCreateEvent() {
                     city: formData.city,
                 },
                 registrationFields: regFields,
-                // Ensure numbers are numbers
                 totalSeats: Number(formData.totalSeats),
                 price: Number(formData.price),
             };
+
+            if (bannerFile) {
+                const res = await eventsApi.uploadBanner({ file: bannerFile, eventName: formData.title });
+                if (res.data?.success && res.data?.bannerImage) {
+                    payload.bannerImage = res.data.bannerImage; // { url, publicId }
+                }
+            } else if (formData.bannerImage) {
+                payload.bannerUrl = formData.bannerImage; // legacy string URL
+            }
 
             const response = await eventsApi.create(payload);
             if (response.data.success) {
@@ -178,9 +214,22 @@ export default function AdminCreateEvent() {
                                     onChange={handleChange}
                                     className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 text-slate-600 font-medium shadow-sm transition-all bg-white"
                                 />
-                                {formData.bannerImage && (
+                                <div className="mt-6">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Or Upload Banner Image</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0] || null;
+                                            setBannerFile(file);
+                                            setBannerPreview(file ? URL.createObjectURL(file) : '');
+                                        }}
+                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-3 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 text-slate-600 font-medium shadow-sm transition-all bg-white"
+                                    />
+                                </div>
+                                {(bannerPreview || formData.bannerImage) && (
                                     <div className="mt-6 rounded-2xl overflow-hidden border-4 border-white shadow-lg aspect-video bg-slate-50 relative group">
-                                        <img src={formData.bannerImage} alt="Preview" className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-500" />
+                                        <img src={bannerPreview || formData.bannerImage} alt="Preview" className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-500" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                                     </div>
                                 )}
@@ -300,6 +349,7 @@ export default function AdminCreateEvent() {
                                     <input
                                         type="number"
                                         name="price"
+                                        min="0"
                                         value={formData.price}
                                         onChange={handleChange}
                                         className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
@@ -310,6 +360,7 @@ export default function AdminCreateEvent() {
                                     <input
                                         type="number"
                                         name="totalSeats"
+                                        min="0"
                                         value={formData.totalSeats}
                                         onChange={handleChange}
                                         className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
@@ -423,4 +474,3 @@ export default function AdminCreateEvent() {
         </div>
     );
 }
-

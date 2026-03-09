@@ -15,15 +15,18 @@ export const eventsApi = {
   update: (id, data) => apiClient.put(`/events/${id}`, data),
   delete: (id) => apiClient.delete(`/events/${id}`),
   updateStatus: (id, status) => apiClient.post(`/events/${id}/status`, { status }),
-  /**
-   * PATCH banner for an existing event (multipart/form-data).
-   * Backend: PATCH /api/events/:id/banner with field:
-   * - bannerImage: File
-   */
+  uploadBanner: ({ file, eventName }) => {
+    const form = new FormData();
+    if (file) form.append('bannerImage', file);
+    if (eventName) form.append('eventName', eventName);
+    return apiClient.post('/events/banner', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
   patchBanner: (id, file) => {
-    const fd = new FormData();
-    fd.append('bannerImage', file);
-    return apiClient.patch(`/events/${id}/banner`, fd, {
+    const form = new FormData();
+    if (file) form.append('bannerImage', file);
+    return apiClient.patch(`/events/${id}/banner`, form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },

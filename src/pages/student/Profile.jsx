@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   User, 
@@ -10,6 +11,8 @@ import {
   Calendar
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { authApi } from '../../api/endpoints';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 
@@ -18,7 +21,10 @@ import Button from '../../components/common/Button';
  * (password and tokens not exposed by API)
  */
 export default function StudentProfile() {
-  const { user, logout } = useAuth();
+  const { user, logout, setUserFromResponse } = useAuth();
+  const { addToast } = useToast();
+  const [uploading, setUploading] = useState(false);
+  const fileInputId = 'profilePicInput';
 
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
@@ -47,14 +53,53 @@ export default function StudentProfile() {
               <div className="relative">
                 <div className="w-24 h-24 rounded-full bg-white p-1 shadow-xl">
                   <div className="w-full h-full rounded-full bg-slate-100 flex items-center justify-center text-2xl font-black text-slate-400">
-                    {user?.profilePicture ? (
-                      <img src={user.profilePicture} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                    {user?.profilePic ? (
+                      <img src={user.profilePic} alt={user.name} className="w-full h-full rounded-full object-cover" />
                     ) : (
                       initials
                     )}
                   </div>
                 </div>
-                <button className="absolute bottom-0 right-0 p-2 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-colors shadow-lg">
+                <input
+                  id={fileInputId}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const maxSize = 5 * 1024 * 1024;
+                    if (file.size > maxSize) {
+                      addToast({ title: 'File Too Large', message: 'Please choose an image under 5MB.', type: 'warning' });
+                      e.target.value = '';
+                      return;
+                    }
+                    if (!file.type.startsWith('image/')) {
+                      addToast({ title: 'Invalid File', message: 'Only image files are allowed.', type: 'error' });
+                      e.target.value = '';
+                      return;
+                    }
+                    try {
+                      setUploading(true);
+                      const res = await authApi.updateProfilePicture(file);
+                      if (res.data?.success && res.data?.user) {
+                        setUserFromResponse(res.data);
+                        addToast({ title: 'Profile Updated', message: 'Your profile picture has been updated.', type: 'success' });
+                      }
+                    } catch (err) {
+                      addToast({ title: 'Upload Failed', message: err.response?.data?.message || 'Could not update profile picture', type: 'error' });
+                    } finally {
+                      setUploading(false);
+                      e.target.value = '';
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => document.getElementById(fileInputId)?.click()}
+                  className="absolute bottom-0 right-0 p-2 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-colors shadow-lg disabled:opacity-60"
+                  disabled={uploading}
+                  title="Update profile picture"
+                >
                   <Camera className="w-4 h-4" />
                 </button>
               </div>

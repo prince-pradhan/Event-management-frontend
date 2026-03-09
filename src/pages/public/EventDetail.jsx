@@ -212,7 +212,7 @@ export default function EventDetail() {
             <Card padding={false} className="overflow-hidden shadow-soft-lg">
                 {event.bannerImage ? (
                     <img
-                        src={event.bannerImage}
+                        src={typeof event.bannerImage === 'object' ? (event.bannerImage.url || '') : event.bannerImage}
                         alt={event.title}
                         className="w-full h-56 sm:h-72 object-cover"
                     />
