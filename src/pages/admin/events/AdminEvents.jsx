@@ -102,13 +102,19 @@ export default function AdminEvents() {
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-5">
                         <Link
-                          to={`/admin/events/${event._id}/registrations`}
+                          to={ROUTES.ADMIN_EVENT_REGISTRATIONS.replace(':id', event._id)}
                           className="text-[10px] font-black text-slate-300 hover:text-primary-600 uppercase tracking-widest transition-colors"
                         >
                           Attendees
                         </Link>
                         <Link
-                          to={`/admin/events/${event._id}/edit`}
+                          to={ROUTES.ADMIN_EVENT_REVIEWS.replace(':id', event._id)}
+                          className="text-[10px] font-black text-slate-300 hover:text-primary-600 uppercase tracking-widest transition-colors"
+                        >
+                          Reviews
+                        </Link>
+                        <Link
+                          to={ROUTES.ADMIN_EVENT_EDIT.replace(':id', event._id)}
                           className="text-[10px] font-black text-slate-300 hover:text-primary-600 uppercase tracking-widest transition-colors"
                         >
                           Edit

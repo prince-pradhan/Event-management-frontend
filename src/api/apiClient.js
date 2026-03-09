@@ -22,8 +22,9 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Optional: trigger logout or redirect to login
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Dispatch a custom event to trigger logout
+      window.dispatchEvent(new Event('unauthorized'));
     }
     return Promise.reject(error);
   }
