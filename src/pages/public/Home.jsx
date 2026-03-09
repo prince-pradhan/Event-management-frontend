@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Calendar, Users, Zap, Star } from 'lucide-react';
 import { eventsApi } from '../../api/endpoints';
 import { ROUTES } from '../../utils/constants';
 import EventCard from '../../components/events/EventCard';
 import Button from '../../components/common/Button';
+import { useAuth } from '../../context/AuthContext';
 
 // Assets
 import heroImage from '../../assets/hero-campus.png';
@@ -34,23 +35,41 @@ const staggerContainer = {
 export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated, isAdmin, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        // Fetch only events marked as UPCOMING by admin
-        const response = await eventsApi.getAll({ status: 'UPCOMING', limit: 6, page: 1 });
-        if (response.data.success) {
-          setUpcomingEvents(response.data.events || []);
-        }
-      } catch (error) {
-        console.error('Failed to fetch events', error);
-      } finally {
-        setLoading(false);
+    if (!authLoading && isAuthenticated) {
+      if (isAdmin) {
+        navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
+      } else {
+        navigate(ROUTES.STUDENT_DASHBOARD, { replace: true });
       }
-    };
-    fetchEvents();
-  }, []);
+    }
+  }, [isAuthenticated, isAdmin, authLoading, navigate]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const fetchEvents = async () => {
+        try {
+          // Fetch only events marked as UPCOMING by admin
+          const response = await eventsApi.getAll({ status: 'UPCOMING', limit: 6, page: 1 });
+          if (response.data.success) {
+            setUpcomingEvents(response.data.events || []);
+          }
+        } catch (error) {
+          console.error('Failed to fetch events', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchEvents();
+    }
+  }, [isAuthenticated]);
+
+  if (authLoading || isAuthenticated) {
+    return <div className="min-h-screen bg-slate-50" />; // Or a loading spinner
+  }
 
   return (
     <div className="flex flex-col min-h-screen">

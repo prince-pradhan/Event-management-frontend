@@ -144,19 +144,20 @@ export function NotificationProvider({ children }) {
             });
 
             return () => {
-                if (socket) {
-                    socket.disconnect();
+                if (socketRef.current) {
+                    console.log('[Socket] Disconnecting due to component unmount or auth change.');
+                    socketRef.current.disconnect();
                     socketRef.current = null;
                 }
             };
-        } else {
+        } else if (socketRef.current) {
+            console.log('[Socket] Disconnecting due to unauthentication.');
+            socketRef.current.disconnect();
+            socketRef.current = null;
+            // Clear state
             setNotifications([]);
             setUnreadCount(0);
             setPagination({ page: 1, limit: 20, total: 0, hasMore: false });
-            if (socketRef.current) {
-                socketRef.current.disconnect();
-                socketRef.current = null;
-            }
         }
     }, [isAuthenticated, user?._id, fetchNotifications, addToast]);
 

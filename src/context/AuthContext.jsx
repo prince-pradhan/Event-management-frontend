@@ -9,6 +9,12 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+    };
+
+    window.addEventListener('unauthorized', handleUnauthorized);
+
     authApi
       .checkAuth()
       .then((res) => {
@@ -17,6 +23,10 @@ export function AuthProvider({ children }) {
       })
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
+
+    return () => {
+      window.removeEventListener('unauthorized', handleUnauthorized);
+    };
   }, []);
 
   const login = async (credentials) => {

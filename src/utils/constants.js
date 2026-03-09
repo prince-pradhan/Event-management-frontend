@@ -20,6 +20,9 @@ export const ROUTES = {
   ADMIN_DASHBOARD: '/admin/dashboard',
   ADMIN_EVENTS: '/admin/events',
   ADMIN_EVENTS_CREATE: '/admin/events/new',
+  ADMIN_EVENT_EDIT: '/admin/events/:id/edit',
+  ADMIN_EVENT_REVIEWS: '/admin/events/:id/reviews',
+  ADMIN_EVENT_REGISTRATIONS: '/admin/events/:id/registrations',
   ADMIN_USERS: '/admin/users',
   // Aliases for menu/redirects
   ADMIN: '/admin/dashboard',
