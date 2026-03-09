@@ -2,7 +2,7 @@
  * Aligned with backend models and enums (bakend/src/models/enum.js)
  */
 
-export const APP_NAME = 'College Event Management';
+export const APP_NAME = 'EduEvents';
 
 export const ROUTES = {
   HOME: '/',
@@ -14,7 +14,7 @@ export const ROUTES = {
   // Student routes (when logged in as student)
   STUDENT_DASHBOARD: '/student/dashboard',
   STUDENT_PROFILE: '/student/profile',
-  STUDENT_MY_BOOKINGS: '/student/my-bookings',
+  STUDENT_MY_REGISTRATIONS: '/student/my-registrations',
   STUDENT_NOTIFICATIONS: '/student/notifications',
   // Admin routes (when logged in as admin)
   ADMIN_DASHBOARD: '/admin/dashboard',
@@ -34,6 +34,7 @@ export const USER_ROLE = {
 /** Backend: EVENT_STATUS */
 export const EVENT_STATUS = {
   DRAFT: 'DRAFT',
+  UPCOMING: 'UPCOMING',
   PUBLISHED: 'PUBLISHED',
   CANCELLED: 'CANCELLED',
   COMPLETED: 'COMPLETED',
@@ -54,11 +55,26 @@ export const PAYMENT_STATUS = {
   REFUNDED: 'REFUNDED',
 };
 
-/** Backend: NOTIFICATION_TYPE */
+/** Backend: NOTIFICATION_TYPE (Delivery methods) */
 export const NOTIFICATION_TYPE = {
   EMAIL: 'EMAIL',
   SMS: 'SMS',
   PUSH: 'PUSH',
+};
+
+/** Backend: notification categories */
+export const NOTIFICATION_CATEGORY = {
+  NEW_EVENT: 'NEW_EVENT',
+  EVENT_REMINDER: 'EVENT_REMINDER',
+  EVENT_UPDATED: 'EVENT_UPDATED',
+  SYSTEM: 'SYSTEM',
+};
+
+/** Backend: notification scopes */
+export const NOTIFICATION_SCOPE = {
+  BROADCAST: 'BROADCAST',
+  TARGETED: 'TARGETED',
+  PERSONALIZED: 'PERSONALIZED',
 };
 
 /** Display labels for category names (Category model: name, description) */

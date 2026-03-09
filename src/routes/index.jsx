@@ -3,9 +3,9 @@ import Layout from '../components/layout/Layout';
 import ProtectedRoute from './ProtectedRoute';
 import { ROUTES } from '../utils/constants';
 
-import Home from '../pages/Home';
-import Events from '../pages/Events';
-import EventDetail from '../pages/EventDetail';
+import Home from '../pages/public/Home';
+import Events from '../pages/public/Events';
+import EventDetail from '../pages/public/EventDetail';
 import NotFound from '../pages/NotFound';
 
 import Login from '../pages/auth/Login';
@@ -14,14 +14,20 @@ import VerifyEmail from '../pages/auth/VerifyEmail';
 
 import StudentDashboard from '../pages/student/Dashboard';
 import StudentProfile from '../pages/student/Profile';
-import MyBookings from '../pages/student/MyBookings';
+import MyRegistrations from '../pages/student/MyRegistrations';
 import Notifications from '../pages/student/Notifications';
+import NotificationDetail from '../pages/student/NotificationDetail';
 
+import AdminLayout from '../components/layout/AdminLayout';
+import AdminHome from '../pages/admin/AdminHome';
 import AdminDashboard from '../pages/admin/AdminDashboard';
-import AdminEvents from '../pages/admin/AdminEvents';
-import AdminCreateEvent from '../pages/admin/AdminCreateEvent';
-import AdminEditEvent from '../pages/admin/AdminEditEvent';
+import AdminEvents from '../pages/admin/events/AdminEvents';
+import AdminCreateEvent from '../pages/admin/events/AdminCreateEvent';
+import AdminEditEvent from '../pages/admin/events/AdminEditEvent';
 import AdminUsers from '../pages/admin/AdminUsers';
+import AdminCategories from '../pages/admin/AdminCategories';
+import EventRegistrations from '../pages/admin/registrations/EventRegistrations';
+import AdminNotifications from '../pages/admin/AdminNotifications';
 
 const router = createBrowserRouter([
   {
@@ -36,81 +42,68 @@ const router = createBrowserRouter([
       { path: 'verify-email', element: <VerifyEmail /> },
       // Student routes
       {
-        path: 'student/dashboard',
-        element: (
-          <ProtectedRoute>
-            <StudentDashboard />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'student/profile',
-        element: (
-          <ProtectedRoute>
-            <StudentProfile />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'student/my-bookings',
-        element: (
-          <ProtectedRoute>
-            <MyBookings />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'student/notifications',
-        element: (
-          <ProtectedRoute>
-            <Notifications />
-          </ProtectedRoute>
-        ),
-      },
-      // Admin routes
-      {
-        path: 'admin/dashboard',
-        element: (
-          <ProtectedRoute adminOnly>
-            <AdminDashboard />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin/events',
-        element: (
-          <ProtectedRoute adminOnly>
-            <AdminEvents />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin/events/new',
-        element: (
-          <ProtectedRoute adminOnly>
-            <AdminCreateEvent />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin/events/:id/edit',
-        element: (
-          <ProtectedRoute adminOnly>
-            <AdminEditEvent />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin/users',
-        element: (
-          <ProtectedRoute adminOnly>
-            <AdminUsers />
-          </ProtectedRoute>
-        ),
+        path: 'student',
+        children: [
+          {
+            path: 'dashboard',
+            element: (
+              <ProtectedRoute>
+                <StudentDashboard />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'profile',
+            element: (
+              <ProtectedRoute>
+                <StudentProfile />
+              </ProtectedRoute>
+            ),
+          },
+          { path: 'my-registrations', element: <ProtectedRoute><MyRegistrations /></ProtectedRoute> },
+          { path: 'my-bookings', element: <Navigate to="/student/my-registrations" replace /> },
+          {
+            path: 'notifications',
+            element: (
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'notifications/:id',
+            element: (
+              <ProtectedRoute>
+                <NotificationDetail />
+              </ProtectedRoute>
+            ),
+          },
+        ]
       },
       { path: '404', element: <NotFound /> },
       { path: '*', element: <Navigate to="/404" replace /> },
     ],
+  },
+  // Admin routes (Separate from main Layout to avoid double Header)
+  {
+    path: 'admin',
+    element: (
+      <ProtectedRoute adminOnly>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <Navigate to="/admin/dashboard" replace /> },
+      { path: 'dashboard', element: <AdminHome /> },
+      { path: 'management', element: <AdminDashboard /> },
+      { path: 'events', element: <AdminEvents /> },
+      { path: 'events/new', element: <AdminCreateEvent /> },
+      { path: 'events/:id/edit', element: <AdminEditEvent /> },
+      { path: 'events/:eventId/registrations', element: <EventRegistrations /> },
+      { path: 'users', element: <AdminUsers /> },
+      { path: 'categories', element: <AdminCategories /> },
+      { path: 'notifications', element: <AdminNotifications /> },
+    ]
   },
 ]);
 

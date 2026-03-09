@@ -4,21 +4,23 @@ import { useAuth } from '../../context/AuthContext';
 import { APP_NAME, ROUTES } from '../../utils/constants';
 import Button from '../common/Button';
 import UserMenu from './UserMenu';
+import NotificationDropdown from './NotificationDropdown';
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated, user, isAdmin } = useAuth();
 
-  // Show Home/Events nav for everyone, or specific logic
+  // Home goes to dashboard when logged in, landing page when not
+  const homeLink = isAuthenticated
+    ? (isAdmin ? ROUTES.ADMIN_DASHBOARD : ROUTES.STUDENT_DASHBOARD)
+    : ROUTES.HOME;
+
   const navLinks = [
-    { to: ROUTES.HOME, label: 'Home' },
+    { to: homeLink, label: 'Home' },
     { to: ROUTES.EVENTS, label: 'Events' },
   ];
 
-  // Logo links to dashboard when logged in, home when not
-  const logoLink = isAuthenticated
-    ? (isAdmin ? ROUTES.ADMIN_DASHBOARD : ROUTES.STUDENT_DASHBOARD)
-    : ROUTES.HOME;
+  const logoLink = homeLink;
 
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-50 shadow-soft">
@@ -45,7 +47,10 @@ export default function Header() {
 
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
-              <UserMenu />
+              <>
+                <NotificationDropdown />
+                <UserMenu />
+              </>
             ) : (
               <>
                 <Link to={ROUTES.LOGIN} className="hidden sm:block">

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { eventsApi, categoriesApi } from '../api/endpoints';
-import EventCard from '../components/events/EventCard';
-import EventFilters from '../components/events/EventFilters';
+import { useLocation } from 'react-router-dom';
+import { eventsApi, categoriesApi } from '../../api/endpoints';
+import EventCard from '../../components/events/EventCard';
+import EventFilters from '../../components/events/EventFilters';
 
 /**
  * Backend: GET /api/events?category,status,search,page,limit
@@ -13,12 +14,30 @@ export default function Events() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ search: '', category: '', status: '', page: 1, limit: 20 });
+  const location = useLocation();
 
   useEffect(() => {
     categoriesApi.getAll().then((res) => {
       if (res.data?.success && res.data?.categories) setCategories(res.data.categories);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search || '');
+    const status = params.get('status') || '';
+    const category = params.get('category') || '';
+    const search = params.get('search') || '';
+    const page = Number(params.get('page') || 1);
+    const limit = Number(params.get('limit') || 20);
+    setFilters((f) => ({
+      ...f,
+      status,
+      category,
+      search,
+      page,
+      limit
+    }));
+  }, [location.search]);
 
   useEffect(() => {
     setLoading(true);
