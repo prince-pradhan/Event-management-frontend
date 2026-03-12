@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { institutionsApi } from '../../api/endpoints';
 import { INSTITUTION_STATUS } from '../../utils/constants';
+import { useNotifications } from '../../context/NotificationContext';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import { 
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 
 export default function AdminInstitutions() {
+  const { fetchPendingInstitutions } = useNotifications();
   const [institutions, setInstitutions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -70,6 +72,11 @@ export default function AdminInstitutions() {
   }, [institutions, searchTerm, activeTab]);
 
   const handleUpdateStatus = async (id, status) => {
+    if (status === INSTITUTION_STATUS.REJECTED && !verificationNotes.trim()) {
+      alert('Please provide a reason for rejection in the Verification Notes field.');
+      return;
+    }
+    
     setActionLoading(id);
     try {
       const res = await institutionsApi.updateStatus(id, status, verificationNotes);
@@ -79,6 +86,9 @@ export default function AdminInstitutions() {
         );
         setSelectedInst(null);
         setVerificationNotes('');
+        if (fetchPendingInstitutions) {
+          fetchPendingInstitutions();
+        }
       }
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to update status');
@@ -315,7 +325,7 @@ export default function AdminInstitutions() {
                 <div className="pt-8 border-t border-slate-100 space-y-6">
                   <div>
                     <label className="block text-sm font-black text-slate-900 mb-2 flex items-center gap-2">
-                      <Info className="w-4 h-4 text-primary-500" /> Verification Notes (Optional)
+                      <Info className="w-4 h-4 text-primary-500" /> Remark (Optional)
                     </label>
                     <textarea
                       placeholder="Add any notes for this decision. These will be stored for audit purposes."

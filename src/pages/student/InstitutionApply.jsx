@@ -5,9 +5,11 @@ import { ROUTES, INSTITUTION_STATUS } from '../../utils/constants';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
+import { useToast } from '../../context/ToastContext';
 
 export default function InstitutionApply() {
   const navigate = useNavigate();
+  const addToast = useToast();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [existingApp, setExistingApp] = useState(null);
@@ -56,12 +58,35 @@ export default function InstitutionApply() {
       const res = await institutionsApi.apply(formData);
       if (res.data.success) {
         setExistingApp(res.data.institution);
+        addToast({
+          title: 'Application Submitted',
+          message: 'Your application to become an institution admin has been submitted successfully.',
+          type: 'success',
+        });
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to submit application');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleReapply = () => {
+    setFormData({
+      name: existingApp.name || '',
+      type: existingApp.type || 'COLLEGE',
+      description: existingApp.description || '',
+      addressLine1: existingApp.addressLine1 || '',
+      addressLine2: existingApp.addressLine2 || '',
+      city: existingApp.city || '',
+      state: existingApp.state || '',
+      country: existingApp.country || '',
+      postalCode: existingApp.postalCode || '',
+      website: existingApp.website || '',
+      contactEmail: existingApp.contactEmail || '',
+      contactPhone: existingApp.contactPhone || '',
+    });
+    setExistingApp(null);
   };
 
   if (loading) {
@@ -86,8 +111,16 @@ export default function InstitutionApply() {
               ? `Your application for "${existingApp.name}" is currently under review by our administrators. We'll notify you once it's verified.`
               : existingApp.status === INSTITUTION_STATUS.VERIFIED
               ? `Congratulations! "${existingApp.name}" has been verified. You now have access to institution-level features.`
-              : `Unfortunately, your application for "${existingApp.name}" was rejected. Please contact support for more information.`}
+              : `Unfortunately, your application for "${existingApp.name}" was rejected.`}
           </p>
+
+          {existingApp.status === INSTITUTION_STATUS.REJECTED && existingApp.verificationNotes && (
+            <div className="mb-8 p-6 bg-red-50 rounded-2xl border border-red-100 text-left max-w-md mx-auto">
+              <h4 className="text-sm font-black text-red-900 uppercase tracking-widest mb-2">Rejection Reason:</h4>
+              <p className="text-red-700 font-medium italic">"{existingApp.verificationNotes}"</p>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to={ROUTES.STUDENT_DASHBOARD}>
               <Button variant="secondary">Back to Dashboard</Button>
@@ -96,6 +129,9 @@ export default function InstitutionApply() {
               <Link to={ROUTES.ADMIN_DASHBOARD}>
                 <Button>Go to Institution Dashboard</Button>
               </Link>
+            )}
+            {existingApp.status === INSTITUTION_STATUS.REJECTED && (
+              <Button onClick={handleReapply}>Reapply Now</Button>
             )}
           </div>
         </Card>

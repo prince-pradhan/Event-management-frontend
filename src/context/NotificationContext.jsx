@@ -2,16 +2,18 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef } f
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
-import { notificationApi } from '../api/endpoints';
+import { notificationApi, institutionsApi } from '../api/endpoints';
+import { USER_ROLE, INSTITUTION_STATUS } from '../utils/constants';
 
 const NotificationContext = createContext(null);
 
 export function NotificationProvider({ children }) {
     const auth = useAuth();
-    const { user, isAuthenticated } = auth;
+    const { user, isAuthenticated, isSystemAdmin } = auth;
     const addToast = useToast();
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [pendingInstitutions, setPendingInstitutions] = useState(0);
     const [loading, setLoading] = useState(false);
     const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, hasMore: false });
     const socketRef = useRef(null);
@@ -90,6 +92,24 @@ export function NotificationProvider({ children }) {
         [isAuthenticated, computeReadFlag]
     );
 
+    const fetchPendingInstitutions = useCallback(async () => {
+        if (!isAuthenticated || !isSystemAdmin) return;
+        try {
+            const res = await institutionsApi.list(INSTITUTION_STATUS.PENDING_VERIFICATION);
+            if (res.data?.success) {
+                setPendingInstitutions(res.data.institutions?.length || 0);
+            }
+        } catch (error) {
+            console.error('Failed to fetch pending institutions:', error);
+        }
+    }, [isAuthenticated, isSystemAdmin]);
+
+    useEffect(() => {
+        if (isAuthenticated && isSystemAdmin) {
+            fetchPendingInstitutions();
+        }
+    }, [isAuthenticated, isSystemAdmin, fetchPendingInstitutions]);
+
     useEffect(() => {
         if (isAuthenticated) {
             fetchNotifications({ page: 1, limit: 20, append: false });
@@ -124,6 +144,11 @@ export function NotificationProvider({ children }) {
                     if (auth.refreshUser) {
                         auth.refreshUser();
                     }
+                }
+
+                if (payload.data?.action === 'VERIFY_INSTITUTION') {
+                    console.log('VERIFY_INSTITUTION action detected, incrementing pending institutions count...');
+                    setPendingInstitutions(prev => prev + 1);
                 }
 
                 setNotifications(prev => {
@@ -166,6 +191,7 @@ export function NotificationProvider({ children }) {
             // Clear state
             setNotifications([]);
             setUnreadCount(0);
+            setPendingInstitutions(0);
             setPagination({ page: 1, limit: 20, total: 0, hasMore: false });
         }
     }, [isAuthenticated, user?._id]);
@@ -228,9 +254,11 @@ export function NotificationProvider({ children }) {
     const value = {
         notifications,
         unreadCount,
+        pendingInstitutions,
         loading,
         pagination,
         fetchNotifications,
+        fetchPendingInstitutions,
         loadMore,
         markAsRead,
         markAllAsRead,

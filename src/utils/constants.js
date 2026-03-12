@@ -26,6 +26,7 @@ export const ROUTES = {
   ADMIN_EVENT_REGISTRATIONS: '/admin/events/:id/registrations',
   ADMIN_USERS: '/admin/users',
   ADMIN_INSTITUTIONS: '/admin/institutions',
+  INSTITUTION_ADMIN_DASHBOARD: '/institution-admin/dashboard',
   // Aliases for menu/redirects
   ADMIN: '/admin/dashboard',
 };

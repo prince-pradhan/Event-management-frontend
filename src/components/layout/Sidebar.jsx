@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { ROUTES, USER_ROLE } from '../../utils/constants';
 
 const navItems = [
@@ -49,10 +49,16 @@ const navItems = [
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }) {
-    const { user, logout, isAdmin, isSystemAdmin, isInstitutionAdmin } = useAuth();
+    const { user, logout, isSystemAdmin, isInstitutionAdmin } = useAuth();
+    const { pendingInstitutions } = useNotifications();
     const location = useLocation();
 
-    const filteredNavItems = navItems.filter(item => {
+    const filteredNavItems = navItems.map(item => {
+        if (item.name === 'Institutions') {
+            return { ...item, badge: pendingInstitutions };
+        }
+        return item;
+    }).filter(item => {
         if (item.isSystemAdminOnly && !isSystemAdmin) return false;
         if (item.role && !item.role.includes(user?.role)) return false;
         return true;
@@ -96,7 +102,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                             >
                                 <span className="group-hover:scale-110 transition-transform">{item.icon}</span>
                                 <span className="font-bold text-sm tracking-tight">{item.name}</span>
-
+                                {item.badge > 0 && (
+                                    <span className="ml-auto bg-primary-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                                        {item.badge}
+                                    </span>
+                                )}
                             </NavLink>
                         ))}
                     </nav>
