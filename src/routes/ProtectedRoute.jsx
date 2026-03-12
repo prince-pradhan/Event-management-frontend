@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { ROUTES, USER_ROLE } from '../utils/constants';
 
 export default function ProtectedRoute({ children, adminOnly = false }) {
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, loading, isAuthenticated, isAdmin } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -18,7 +18,7 @@ export default function ProtectedRoute({ children, adminOnly = false }) {
     return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
   }
 
-  if (adminOnly && user?.role !== USER_ROLE.ADMIN) {
+  if (adminOnly && !isAdmin) {
     return <Navigate to={ROUTES.STUDENT_DASHBOARD} replace />;
   }
 

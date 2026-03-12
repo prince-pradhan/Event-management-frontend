@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ROUTES } from '../../utils/constants';
+import { ROUTES, USER_ROLE } from '../../utils/constants';
 
 const navItems = [
     {
@@ -19,14 +19,21 @@ const navItems = [
         )
     },
     {
-        name: 'Notifications', path: '/admin/notifications', icon: (
+        name: 'Notifications', path: '/admin/notifications', role: [USER_ROLE.INSTITUTION_ADMIN], icon: (
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
         )
     },
     {
-        name: 'Users', path: '/admin/users', icon: (
+        name: 'Institutions', path: '/admin/institutions', isSystemAdminOnly: true, icon: (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H5a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+        )
+    },
+    {
+        name: 'Users', path: '/admin/users', isSystemAdminOnly: true, icon: (
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
@@ -42,8 +49,14 @@ const navItems = [
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }) {
-    const { user, logout } = useAuth();
+    const { user, logout, isAdmin, isSystemAdmin, isInstitutionAdmin } = useAuth();
     const location = useLocation();
+
+    const filteredNavItems = navItems.filter(item => {
+        if (item.isSystemAdminOnly && !isSystemAdmin) return false;
+        if (item.role && !item.role.includes(user?.role)) return false;
+        return true;
+    });
 
     return (
         <>
@@ -69,7 +82,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     {/* Navigation */}
                     <nav className="flex-1 space-y-2">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-3">Menu</p>
-                        {navItems.map((item) => (
+                        {filteredNavItems.map((item) => (
                             <NavLink
                                 key={item.name}
                                 to={item.path}
@@ -91,12 +104,16 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     {/* Profile & Footer */}
                     <div className="pt-6 border-t border-slate-50">
                         <div className="flex items-center gap-4 p-3 rounded-2xl bg-slate-50/50 border border-slate-50 shadow-inner group">
-                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm relative overflow-hidden">
-                                {user?.name?.charAt(0) || 'A'}
+                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm relative overflow-hidden font-black">
+                                {isInstitutionAdmin && user?.institutionData?.name ? user.institutionData.name.charAt(0) : (user?.name?.charAt(0) || 'A')}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-black text-slate-900 truncate tracking-tight">{user?.name || 'Admin User'}</p>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate mb-1">Administrator</p>
+                                <p className="text-sm font-black text-slate-900 truncate tracking-tight">
+                                    {isInstitutionAdmin && user?.institutionData?.name ? user.institutionData.name : (user?.name || 'Admin User')}
+                                </p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate mb-1">
+                                    {isSystemAdmin ? 'System Administrator' : 'Institution Admin'}
+                                </p>
                             </div>
                         </div>
 

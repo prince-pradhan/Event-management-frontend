@@ -7,8 +7,9 @@ import { notificationApi } from '../api/endpoints';
 const NotificationContext = createContext(null);
 
 export function NotificationProvider({ children }) {
-    const { user, isAuthenticated } = useAuth();
-    const { addToast } = useToast();
+    const auth = useAuth();
+    const { user, isAuthenticated } = auth;
+    const addToast = useToast();
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -117,6 +118,14 @@ export function NotificationProvider({ children }) {
 
             socket.on('receive_notification', (payload) => {
                 console.log('[Socket] New notification received:', payload);
+
+                if (payload.data?.action === 'REFRESH_PROFILE') {
+                    console.log('REFRESH_PROFILE action detected, refreshing user...');
+                    if (auth.refreshUser) {
+                        auth.refreshUser();
+                    }
+                }
+
                 setNotifications(prev => {
                     const next = [payload, ...prev];
                     const dedup = new Map(next.map(i => [i._id, i]));
@@ -159,7 +168,7 @@ export function NotificationProvider({ children }) {
             setUnreadCount(0);
             setPagination({ page: 1, limit: 20, total: 0, hasMore: false });
         }
-    }, [isAuthenticated, user?._id, fetchNotifications, addToast]);
+    }, [isAuthenticated, user?._id]);
 
     const markAsRead = async (id) => {
         try {
