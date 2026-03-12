@@ -45,17 +45,20 @@ export default function AdminNotifications() {
   useEffect(() => {
     async function bootstrap() {
       try {
-        const [usersRes, eventsRes, listRes] = await Promise.all([
+        const [usersRes, eventsRes, listRes] = await Promise.allSettled([
           authApi.getUsers(),
-          eventsApi.getAll({ limit: 50, status: 'PUBLISHED' }).catch(() => ({ data: { events: [] } })),
+          eventsApi.getAll({ limit: 50, status: 'PUBLISHED' }),
           notificationApi.getAll({ page: 1, limit }),
         ]);
-        setUsers(usersRes.data?.users || []);
-        setEvents(eventsRes.data?.events || []);
-        setList(listRes.data?.notifications || []);
-        setTotal(listRes.data?.pagination?.total || 0);
+
+        if (usersRes.status === 'fulfilled') setUsers(usersRes.value.data?.users || []);
+        if (eventsRes.status === 'fulfilled') setEvents(eventsRes.value.data?.events || []);
+        if (listRes.status === 'fulfilled') {
+          setList(listRes.value.data?.notifications || []);
+          setTotal(listRes.value.data?.pagination?.total || 0);
+        }
       } catch (e) {
-        // Safe fallback
+        console.error('Bootstrap error:', e);
       }
     }
     bootstrap();

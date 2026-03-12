@@ -31,7 +31,8 @@ export default function VerifyEmail() {
             if (res.data?.success && res.data?.user) {
                 setSuccess(true);
                 const user = res.data.user;
-                const target = user.role === USER_ROLE.ADMIN ? ROUTES.ADMIN_DASHBOARD : ROUTES.STUDENT_DASHBOARD;
+                const isAdmin = [USER_ROLE.ADMIN, USER_ROLE.SYSTEM_ADMIN, USER_ROLE.INSTITUTION_ADMIN].includes(user?.role);
+                const target = isAdmin ? ROUTES.ADMIN_DASHBOARD : ROUTES.STUDENT_DASHBOARD;
                 setTimeout(() => navigate(target, { replace: true }), 1000);
             }
         } catch (err) {

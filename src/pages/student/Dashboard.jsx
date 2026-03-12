@@ -10,12 +10,14 @@ import {
   MapPin,
   ChevronRight,
   User,
-  LogOut
+  LogOut,
+  Building2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/common/Card';
+import Button from '../../components/common/Button';
 import VerificationBanner from '../../components/common/VerificationBanner';
-import { ROUTES } from '../../utils/constants';
+import { ROUTES, USER_ROLE } from '../../utils/constants';
 import { eventsApi, registrationsApi } from '../../api/endpoints';
 
 export default function StudentDashboard() {
@@ -173,6 +175,34 @@ export default function StudentDashboard() {
               textClass="text-slate-900"
             />
           </div>
+
+          {/* Become an Institution Call-to-Action */}
+          {user?.role === USER_ROLE.STUDENT && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Card className="bg-gradient-to-r from-slate-900 to-slate-800 border-0 shadow-xl overflow-hidden relative group">
+                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Building2 className="w-32 h-32 text-white -rotate-12 translate-x-10 -translate-y-10" />
+                </div>
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 p-4">
+                  <div className="max-w-md">
+                    <h3 className="text-2xl font-black text-white mb-2">Represent an Institution?</h3>
+                    <p className="text-slate-300 font-medium leading-relaxed">
+                      Register your college or organization to start hosting your own campus events and manage registrations effortlessly.
+                    </p>
+                  </div>
+                  <Link to={ROUTES.INSTITUTION_APPLY}>
+                    <Button className="bg-primary-500 hover:bg-primary-600 text-white border-0 shadow-lg shadow-primary-900/20 px-8 py-3">
+                      Become an Institute <ArrowRight className="ml-2 w-4 h-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </Card>
+            </motion.div>
+          )}
 
           {/* Upcoming Events Section */}
           <div>
