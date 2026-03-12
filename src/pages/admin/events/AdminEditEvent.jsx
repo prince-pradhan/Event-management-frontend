@@ -5,10 +5,12 @@ import { eventsApi } from '../../../api/endpoints/events';
 import { ROUTES, EVENT_STATUS } from '../../../utils/constants';
 import Button from '../../../components/common/Button';
 import Card from '../../../components/common/Card';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function AdminEditEvent() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { isSystemAdmin } = useAuth();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -38,6 +40,12 @@ export default function AdminEditEvent() {
     const [regFields, setRegFields] = useState([]);
     const [bannerFile, setBannerFile] = useState(null);
     const [bannerPreview, setBannerPreview] = useState('');
+
+    // Helper to resolve admin path based on role
+    const getAdminPath = (path) => {
+        const prefix = isSystemAdmin ? '/admin' : '/institution-admin';
+        return path.replace('/admin', prefix);
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -170,7 +178,7 @@ export default function AdminEditEvent() {
 
             const response = await eventsApi.update(id, payload);
             if (response.data.success) {
-                navigate(ROUTES.ADMIN_EVENTS);
+                navigate(getAdminPath(ROUTES.ADMIN_EVENTS));
             }
         } catch (err) {
             console.error(err);
@@ -191,7 +199,7 @@ export default function AdminEditEvent() {
         <div className="max-w-5xl mx-auto space-y-10">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-100 pb-8">
                 <div>
-                    <Link to={ROUTES.ADMIN_EVENTS} className="text-sm font-bold text-primary-600 hover:text-primary-700 mb-2 inline-block uppercase tracking-wider">
+                    <Link to={getAdminPath(ROUTES.ADMIN_EVENTS)} className="text-sm font-bold text-primary-600 hover:text-primary-700 mb-2 inline-block uppercase tracking-wider">
                         ← Back to events
                     </Link>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">Edit Event</h1>

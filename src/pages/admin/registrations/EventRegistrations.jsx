@@ -4,6 +4,7 @@ import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
 import { ROUTES } from '../../../utils/constants';
 import { registrationsApi, eventsApi } from '../../../api/endpoints';
+import { useAuth } from '../../../context/AuthContext';
 
 function formatDate(dateStr) {
     return dateStr ? new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
@@ -11,10 +12,17 @@ function formatDate(dateStr) {
 
 export default function EventRegistrations() {
     const { eventId } = useParams();
+    const { isSystemAdmin } = useAuth();
     const [event, setEvent] = useState(null);
     const [registrations, setRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Helper to resolve admin path based on role
+    const getAdminPath = (path) => {
+        const prefix = isSystemAdmin ? '/admin' : '/institution-admin';
+        return path.replace('/admin', prefix);
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -109,7 +117,7 @@ export default function EventRegistrations() {
         <div className="max-w-6xl mx-auto space-y-10">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 border-b border-slate-100 pb-10">
                 <div>
-                    <Link to={ROUTES.ADMIN_EVENTS} className="text-xs font-black text-primary-600 hover:text-primary-700 mb-4 inline-block uppercase tracking-[0.2em] transition-all">
+                    <Link to={getAdminPath(ROUTES.ADMIN_EVENTS)} className="text-xs font-black text-primary-600 hover:text-primary-700 mb-4 inline-block uppercase tracking-[0.2em] transition-all">
                         ← Return to Events
                     </Link>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">

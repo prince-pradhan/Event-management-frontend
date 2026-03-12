@@ -123,6 +123,13 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/institution-admin/dashboard" replace /> },
       { path: 'dashboard', element: <AdminHome /> },
+      { path: 'events', element: <AdminEvents /> },
+      { path: 'events/new', element: <AdminCreateEvent /> },
+      { path: 'events/:id/edit', element: <AdminEditEvent /> },
+      { path: 'events/:id/reviews', element: <AdminEventReviews /> },
+      { path: 'events/:eventId/registrations', element: <EventRegistrations /> },
+      { path: 'categories', element: <AdminCategories /> },
+      { path: 'notifications', element: <AdminNotifications /> },
     ]
   },
 ]);

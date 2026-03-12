@@ -5,9 +5,11 @@ import { eventsApi } from '../../../api/endpoints/events';
 import { ROUTES, EVENT_STATUS } from '../../../utils/constants';
 import Button from '../../../components/common/Button';
 import Card from '../../../components/common/Card';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function AdminCreateEvent() {
     const navigate = useNavigate();
+    const { isSystemAdmin } = useAuth();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -36,6 +38,12 @@ export default function AdminCreateEvent() {
     const [newField, setNewField] = useState({ label: '', name: '', fieldType: 'text', required: false });
     const [bannerFile, setBannerFile] = useState(null);
     const [bannerPreview, setBannerPreview] = useState('');
+
+    // Helper to resolve admin path based on role
+    const getAdminPath = (path) => {
+        const prefix = isSystemAdmin ? '/admin' : '/institution-admin';
+        return path.replace('/admin', prefix);
+    };
 
     useEffect(() => {
         // Fetch categories
@@ -125,7 +133,7 @@ export default function AdminCreateEvent() {
 
             const response = await eventsApi.create(payload);
             if (response.data.success) {
-                navigate(ROUTES.ADMIN_EVENTS);
+                navigate(getAdminPath(ROUTES.ADMIN_EVENTS));
             }
         } catch (err) {
             console.error(err);
@@ -139,14 +147,14 @@ export default function AdminCreateEvent() {
         <div className="max-w-5xl mx-auto space-y-10">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-100 pb-8">
                 <div>
-                    <Link to={ROUTES.ADMIN_EVENTS} className="text-sm font-bold text-primary-600 hover:text-primary-700 mb-2 inline-block uppercase tracking-wider">
+                    <Link to={getAdminPath(ROUTES.ADMIN_EVENTS)} className="text-sm font-bold text-primary-600 hover:text-primary-700 mb-2 inline-block uppercase tracking-wider">
                         ← Back to events
                     </Link>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">Create New Event</h1>
                     <p className="mt-2 text-slate-500 font-medium">Bring your vision to life by setting up a new campus event.</p>
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="secondary" onClick={() => navigate(ROUTES.ADMIN_EVENTS)} className="px-6 border-slate-200">Cancel</Button>
+                    <Button variant="secondary" onClick={() => navigate(getAdminPath(ROUTES.ADMIN_EVENTS))} className="px-6 border-slate-200">Cancel</Button>
                     <Button type="submit" form="create-event-form" disabled={loading} className="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-200 transition-all active:scale-[0.98]">
                         {loading ? 'Creating...' : 'Publish Event'}
                     </Button>

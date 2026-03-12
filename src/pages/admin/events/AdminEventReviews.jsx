@@ -4,13 +4,21 @@ import { reviewApi, eventsApi } from '../../../api/endpoints';
 import { ROUTES } from '../../../utils/constants';
 import Card from '../../../components/common/Card';
 import ReviewList from '../../../components/reviews/ReviewList';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function AdminEventReviews() {
   const { id } = useParams();
+  const { isSystemAdmin } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Helper to resolve admin path based on role
+  const getAdminPath = (path) => {
+    const prefix = isSystemAdmin ? '/admin' : '/institution-admin';
+    return path.replace('/admin', prefix);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,7 +60,7 @@ export default function AdminEventReviews() {
     <div className="max-w-7xl mx-auto space-y-10">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-100 pb-8">
         <div>
-          <Link to={ROUTES.ADMIN_EVENTS} className="text-sm font-bold text-primary-600 hover:text-primary-700 mb-2 inline-block uppercase tracking-wider">
+          <Link to={getAdminPath(ROUTES.ADMIN_EVENTS)} className="text-sm font-bold text-primary-600 hover:text-primary-700 mb-2 inline-block uppercase tracking-wider">
             ← Back to events
           </Link>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">

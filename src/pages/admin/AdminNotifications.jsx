@@ -3,10 +3,12 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { useToast } from '../../context/ToastContext';
 import { notificationApi, eventsApi, authApi } from '../../api/endpoints';
-import { NOTIFICATION_CATEGORY, NOTIFICATION_SCOPE } from '../../utils/constants';
+import { NOTIFICATION_CATEGORY, NOTIFICATION_SCOPE, USER_ROLE } from '../../utils/constants';
 import { formatDistanceToNow } from 'date-fns';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdminNotifications() {
+  const { user, isInstitutionAdmin, isSystemAdmin } = useAuth();
   const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
@@ -45,9 +47,13 @@ export default function AdminNotifications() {
   useEffect(() => {
     async function bootstrap() {
       try {
+        const eventsPromise = isInstitutionAdmin && user?.institution
+          ? eventsApi.getByInstitution(user.institution, { limit: 50, status: 'PUBLISHED' })
+          : eventsApi.getAll({ limit: 50, status: 'PUBLISHED' });
+
         const [usersRes, eventsRes, listRes] = await Promise.allSettled([
-          authApi.getUsers(),
-          eventsApi.getAll({ limit: 50, status: 'PUBLISHED' }),
+          isSystemAdmin ? authApi.getUsers() : Promise.resolve({ data: { success: true, users: [] } }),
+          eventsPromise,
           notificationApi.getAll({ page: 1, limit }),
         ]);
 

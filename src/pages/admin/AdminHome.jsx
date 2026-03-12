@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { eventsApi, authApi } from '../../api/endpoints';
-import { ROUTES } from '../../utils/constants';
+import { ROUTES, USER_ROLE } from '../../utils/constants';
 import Card from '../../components/common/Card';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdminHome() {
+    const { user, isSystemAdmin, isInstitutionAdmin } = useAuth();
     const [stats, setStats] = useState({
         totalEvents: 0,
         totalUsers: 0
@@ -14,12 +16,18 @@ export default function AdminHome() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
+                // If institution admin, only fetch their events.
+                // If system admin, fetch all events.
+                const eventsPromise = isInstitutionAdmin && user?.institution
+                    ? eventsApi.getByInstitution(user.institution)
+                    : eventsApi.getAll();
+
                 const [eventsRes, usersRes] = await Promise.all([
-                    eventsApi.getAll(),
-                    authApi.getUsers()
+                    eventsPromise,
+                    isSystemAdmin ? authApi.getUsers() : Promise.resolve({ data: { success: true, users: [] } })
                 ]);
 
-                if (eventsRes.data.success && usersRes.data.success) {
+                if (eventsRes.data.success) {
                     const events = eventsRes.data.events || [];
                     const users = usersRes.data.users || [];
 
@@ -35,12 +43,15 @@ export default function AdminHome() {
             }
         };
         fetchStats();
-    }, []);
+    }, [user, isSystemAdmin, isInstitutionAdmin]);
 
     const metrics = [
         { label: 'Total Events', value: stats.totalEvents, icon: '📅', color: 'text-blue-600', bg: 'bg-blue-50' },
-        { label: 'Total Users', value: stats.totalUsers, icon: '👥', color: 'text-emerald-600', bg: 'bg-emerald-50' },
     ];
+
+    if (isSystemAdmin) {
+        metrics.push({ label: 'Total Users', value: stats.totalUsers, icon: '👥', color: 'text-emerald-600', bg: 'bg-emerald-50' });
+    }
 
     return (
         <div className="space-y-10">

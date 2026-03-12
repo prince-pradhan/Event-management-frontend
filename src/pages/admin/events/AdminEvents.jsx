@@ -1,16 +1,29 @@
 import { Link } from 'react-router-dom';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
-import { ROUTES } from '../../../utils/constants';
+import { ROUTES, USER_ROLE } from '../../../utils/constants';
 import { useAdminEvents } from '../../../hooks/useAdminEvents';
 import StatusDropdown from './components/StatusDropdown';
+import { useAuth } from '../../../context/AuthContext';
 
 function formatDate(dateStr) {
   return dateStr ? new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 }
 
 export default function AdminEvents() {
-  const { events, loading, error, deleteEvent, updateEventStatus } = useAdminEvents();
+  const { user, isSystemAdmin } = useAuth();
+  
+  // If the user is an institution admin, only fetch events for their institution.
+  // System admins will fetch all events (institutionId = undefined).
+  const institutionId = user?.role === USER_ROLE.INSTITUTION_ADMIN ? user.institution : undefined;
+  
+  const { events, loading, error, deleteEvent, updateEventStatus } = useAdminEvents(institutionId);
+
+  // Helper to resolve admin path based on role
+  const getAdminPath = (path) => {
+    const prefix = isSystemAdmin ? '/admin' : '/institution-admin';
+    return path.replace('/admin', prefix);
+  };
 
   if (loading) {
     return (
@@ -38,13 +51,13 @@ export default function AdminEvents() {
     <div className="max-w-7xl mx-auto space-y-10">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-100 pb-8">
         <div>
-          <Link to={ROUTES.ADMIN_DASHBOARD} className="text-sm font-bold text-primary-600 hover:text-primary-700 mb-2 inline-block uppercase tracking-wider">
+          <Link to={getAdminPath(ROUTES.ADMIN_DASHBOARD)} className="text-sm font-bold text-primary-600 hover:text-primary-700 mb-2 inline-block uppercase tracking-wider">
             ← Back to dashboard
           </Link>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Manage events</h1>
           <p className="mt-1 text-slate-500 font-medium">Create, edit, and publish college events</p>
         </div>
-        <Link to={ROUTES.ADMIN_EVENTS_CREATE}>
+        <Link to={getAdminPath(ROUTES.ADMIN_EVENTS_CREATE)}>
           <Button className="bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-200">+ New event</Button>
         </Link>
       </div>
@@ -102,19 +115,19 @@ export default function AdminEvents() {
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-5">
                         <Link
-                          to={ROUTES.ADMIN_EVENT_REGISTRATIONS.replace(':id', event._id)}
+                          to={getAdminPath(ROUTES.ADMIN_EVENT_REGISTRATIONS.replace(':id', event._id))}
                           className="text-[10px] font-black text-slate-300 hover:text-primary-600 uppercase tracking-widest transition-colors"
                         >
                           Attendees
                         </Link>
                         <Link
-                          to={ROUTES.ADMIN_EVENT_REVIEWS.replace(':id', event._id)}
+                          to={getAdminPath(ROUTES.ADMIN_EVENT_REVIEWS.replace(':id', event._id))}
                           className="text-[10px] font-black text-slate-300 hover:text-primary-600 uppercase tracking-widest transition-colors"
                         >
                           Reviews
                         </Link>
                         <Link
-                          to={ROUTES.ADMIN_EVENT_EDIT.replace(':id', event._id)}
+                          to={getAdminPath(ROUTES.ADMIN_EVENT_EDIT.replace(':id', event._id))}
                           className="text-[10px] font-black text-slate-300 hover:text-primary-600 uppercase tracking-widest transition-colors"
                         >
                           Edit

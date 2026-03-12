@@ -34,7 +34,7 @@ export default function ProtectedRoute({ children, adminOnly = false, systemAdmi
   }
 
   // If an institution admin tries to access student areas (optional, but requested "protect route")
-  if (isInstitutionAdmin && !adminOnly && location.pathname.startsWith('/student')) {
+  if (isInstitutionAdmin && !adminOnly && !systemAdminOnly && location.pathname.startsWith('/student')) {
     return <Navigate to={ROUTES.INSTITUTION_ADMIN_DASHBOARD} replace />;
   }
 

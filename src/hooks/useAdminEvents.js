@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { eventsApi } from '../api/endpoints';
 
-export const useAdminEvents = () => {
+export const useAdminEvents = (institutionId) => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -9,7 +9,10 @@ export const useAdminEvents = () => {
     const fetchEvents = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await eventsApi.getAll();
+            const response = institutionId 
+                ? await eventsApi.getByInstitution(institutionId)
+                : await eventsApi.getAll();
+                
             if (response.data.success) {
                 setEvents(response.data.events);
             } else {
@@ -21,7 +24,7 @@ export const useAdminEvents = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [institutionId]);
 
     useEffect(() => {
         fetchEvents();
