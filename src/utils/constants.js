@@ -16,11 +16,17 @@ export const ROUTES = {
   STUDENT_PROFILE: '/student/profile',
   STUDENT_MY_REGISTRATIONS: '/student/my-registrations',
   STUDENT_NOTIFICATIONS: '/student/notifications',
+  INSTITUTION_APPLY: '/student/institution-apply',
   // Admin routes (when logged in as admin)
   ADMIN_DASHBOARD: '/admin/dashboard',
   ADMIN_EVENTS: '/admin/events',
   ADMIN_EVENTS_CREATE: '/admin/events/new',
+  ADMIN_EVENT_EDIT: '/admin/events/:id/edit',
+  ADMIN_EVENT_REVIEWS: '/admin/events/:id/reviews',
+  ADMIN_EVENT_REGISTRATIONS: '/admin/events/:id/registrations',
   ADMIN_USERS: '/admin/users',
+  ADMIN_INSTITUTIONS: '/admin/institutions',
+  INSTITUTION_ADMIN_DASHBOARD: '/institution-admin/dashboard',
   // Aliases for menu/redirects
   ADMIN: '/admin/dashboard',
 };
@@ -28,7 +34,16 @@ export const ROUTES = {
 /** Backend: USER_ROLE */
 export const USER_ROLE = {
   ADMIN: 'ADMIN',
+  SYSTEM_ADMIN: 'SYSTEM_ADMIN',
+  INSTITUTION_ADMIN: 'INSTITUTION_ADMIN',
   STUDENT: 'STUDENT',
+};
+
+/** Backend: INSTITUTION_STATUS */
+export const INSTITUTION_STATUS = {
+  PENDING_VERIFICATION: 'PENDING_VERIFICATION',
+  VERIFIED: 'VERIFIED',
+  REJECTED: 'REJECTED',
 };
 
 /** Backend: EVENT_STATUS */

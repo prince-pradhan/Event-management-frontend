@@ -1,19 +1,15 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { eventsApi } from '../../api/endpoints'; // Ensure endpoints index exports eventsApi
-import { authApi } from '../../api/endpoints/auth'; // Ensure this exists if needed, or use apiClient directly
+import { eventsApi, reviewApi } from '../../api/endpoints';
 import apiClient from '../../api/apiClient';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import Input from '../../components/common/Input'; // Assuming Input component exists
+import Input from '../../components/common/Input';
+import ReviewForm from '../../components/reviews/ReviewForm';
+import ReviewList from '../../components/reviews/ReviewList';
 import { getCategoryLabel, EVENT_STATUS, ROUTES } from '../../utils/constants';
 
-/**
- * Backend event: title, description, category (populated), organizer (populated),
- * location { venue, address, city, coordinates }, startDate, endDate, totalSeats,
- * availableSeats, price, status, bannerImage, registrationFields
- */
 export default function EventDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -29,6 +25,11 @@ export default function EventDetail() {
     const [regData, setRegData] = useState({});
     const [regError, setRegError] = useState('');
     const [isRegistered, setIsRegistered] = useState(false);
+
+    // Review state
+    const [reviews, setReviews] = useState([]);
+    const [userReview, setUserReview] = useState(null);
+    const [showReviewForm, setShowReviewForm] = useState(false);
 
     useEffect(() => {
         if (!id) return;
@@ -47,7 +48,16 @@ export default function EventDetail() {
             .catch(() => setError('Event not found'))
             .finally(() => setLoading(false));
 
-        // Check if user is already registered
+        // Fetch reviews
+        reviewApi.getReviewsByEvent(id)
+            .then(res => {
+                if (res.data.success) {
+                    setReviews(res.data.reviews);
+                }
+            })
+            .catch(err => console.error('Failed to fetch reviews', err));
+
+        // Check if user is already registered and has reviewed
         if (isAuthenticated) {
             apiClient.get('/registrations/mine')
                 .then(res => {
@@ -57,6 +67,15 @@ export default function EventDetail() {
                     }
                 })
                 .catch(err => console.error('Failed to check registration', err));
+
+            reviewApi.getMyReviews()
+                .then(res => {
+                    if (res.data.success) {
+                        const review = res.data.reviews.find(r => r.event._id === id || r.event === id);
+                        setUserReview(review);
+                    }
+                })
+                .catch(err => console.error('Failed to fetch user review', err));
         }
     }, [id, isAuthenticated]);
 
@@ -119,6 +138,26 @@ export default function EventDetail() {
         setRegData(prev => ({ ...prev, [field.name]: value }));
     };
 
+    const handleReviewSubmit = async (reviewData) => {
+        if (userReview) {
+            // Update existing review
+            const res = await reviewApi.updateReview(userReview._id, reviewData);
+            if (res.data.success) {
+                setUserReview(res.data.review);
+                setReviews(reviews.map(r => r._id === userReview._id ? res.data.review : r));
+                setShowReviewForm(false);
+            }
+        } else {
+            // Create new review
+            const res = await reviewApi.createReview(reviewData);
+            if (res.data.success) {
+                setUserReview(res.data.review);
+                setReviews([res.data.review, ...reviews]);
+                setShowReviewForm(false);
+            }
+        }
+    };
+
     if (loading) {
         return (
             <div className="container-app py-20 flex justify-center">
@@ -149,15 +188,15 @@ export default function EventDetail() {
     const organizerName = event.organizer?.name || (typeof event.organizer === 'object' ? event.organizer?.email : '—');
     const statusLabel = event.status ? EVENT_STATUS[event.status] || event.status : null;
 
-    // Registration Logic checks
+    // Logic checks
     const now = new Date();
     const isPublished = event.status === EVENT_STATUS.PUBLISHED;
     const isRegistrationOpen =
         isPublished &&
         (!event.registrationStartDate || now >= new Date(event.registrationStartDate)) &&
         (!event.registrationEndDate || now <= new Date(event.registrationEndDate));
-
     const hasSeats = event.availableSeats == null || event.availableSeats > 0;
+    const canReview = isRegistered && new Date(event.endDate) < now && !userReview;
 
     return (
         <div className="container-app py-10 relative">
@@ -296,6 +335,29 @@ export default function EventDetail() {
                     </div>
                 </div>
             </Card>
+
+            <div className="mt-12">
+                <h2 className="text-2xl font-bold text-slate-900 mb-6">Reviews</h2>
+                {isAuthenticated && isRegistered && new Date(event.endDate) < now && (
+                    <div className="mb-8 p-6 bg-white rounded-lg shadow-sm border border-slate-100">
+                        {userReview && !showReviewForm ? (
+                            <div>
+                                <h3 className="text-lg font-semibold">Your Review</h3>
+                                <ReviewList reviews={[userReview]} />
+                                <Button onClick={() => setShowReviewForm(true)} className="mt-4">Edit Your Review</Button>
+                            </div>
+                        ) : (
+                            <ReviewForm
+                                eventId={id}
+                                onSubmit={handleReviewSubmit}
+                                onCancel={userReview ? () => setShowReviewForm(false) : null}
+                                existingReview={userReview}
+                            />
+                        )}
+                    </div>
+                )}
+                <ReviewList reviews={reviews.filter(r => r.user._id !== user?._id)} />
+            </div>
         </div>
     );
 }

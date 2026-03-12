@@ -38,7 +38,8 @@ export default function Login() {
             }
 
             // Redirect based on role
-            if (user?.role === USER_ROLE.ADMIN) {
+            const isAdmin = [USER_ROLE.ADMIN, USER_ROLE.SYSTEM_ADMIN, USER_ROLE.INSTITUTION_ADMIN].includes(user?.role);
+            if (isAdmin) {
                 navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
             } else {
                 navigate(ROUTES.STUDENT_DASHBOARD, { replace: true });
@@ -111,7 +112,8 @@ export default function Login() {
                                     });
                                     return;
                                 }
-                                if (user?.role === USER_ROLE.ADMIN) {
+                                const isAdmin = [USER_ROLE.ADMIN, USER_ROLE.SYSTEM_ADMIN, USER_ROLE.INSTITUTION_ADMIN].includes(user?.role);
+                                if (isAdmin) {
                                     navigate(ROUTES.ADMIN_DASHBOARD, { replace: true });
                                 } else {
                                     navigate(ROUTES.STUDENT_DASHBOARD, { replace: true });

@@ -11,10 +11,12 @@ import NotFound from '../pages/NotFound';
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import VerifyEmail from '../pages/auth/VerifyEmail';
+import CongratulationsPage from '../pages/auth/CongratulationsPage';
 
 import StudentDashboard from '../pages/student/Dashboard';
 import StudentProfile from '../pages/student/Profile';
 import MyRegistrations from '../pages/student/MyRegistrations';
+import InstitutionApply from '../pages/student/InstitutionApply';
 import Notifications from '../pages/student/Notifications';
 import NotificationDetail from '../pages/student/NotificationDetail';
 
@@ -24,7 +26,9 @@ import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminEvents from '../pages/admin/events/AdminEvents';
 import AdminCreateEvent from '../pages/admin/events/AdminCreateEvent';
 import AdminEditEvent from '../pages/admin/events/AdminEditEvent';
+import AdminEventReviews from '../pages/admin/events/AdminEventReviews';
 import AdminUsers from '../pages/admin/AdminUsers';
+import AdminInstitutions from '../pages/admin/AdminInstitutions';
 import AdminCategories from '../pages/admin/AdminCategories';
 import EventRegistrations from '../pages/admin/registrations/EventRegistrations';
 import AdminNotifications from '../pages/admin/AdminNotifications';
@@ -40,6 +44,7 @@ const router = createBrowserRouter([
       { path: 'login', element: <Login /> },
       { path: 'register', element: <Register /> },
       { path: 'verify-email', element: <VerifyEmail /> },
+      { path: 'congratulations', element: <CongratulationsPage /> },
       // Student routes
       {
         path: 'student',
@@ -61,6 +66,7 @@ const router = createBrowserRouter([
             ),
           },
           { path: 'my-registrations', element: <ProtectedRoute><MyRegistrations /></ProtectedRoute> },
+          { path: 'institution-apply', element: <ProtectedRoute><InstitutionApply /></ProtectedRoute> },
           { path: 'my-bookings', element: <Navigate to="/student/my-registrations" replace /> },
           {
             path: 'notifications',
@@ -88,7 +94,7 @@ const router = createBrowserRouter([
   {
     path: 'admin',
     element: (
-      <ProtectedRoute adminOnly>
+      <ProtectedRoute systemAdminOnly>
         <AdminLayout />
       </ProtectedRoute>
     ),
@@ -99,10 +105,24 @@ const router = createBrowserRouter([
       { path: 'events', element: <AdminEvents /> },
       { path: 'events/new', element: <AdminCreateEvent /> },
       { path: 'events/:id/edit', element: <AdminEditEvent /> },
+      { path: 'events/:id/reviews', element: <AdminEventReviews /> },
       { path: 'events/:eventId/registrations', element: <EventRegistrations /> },
       { path: 'users', element: <AdminUsers /> },
+      { path: 'institutions', element: <AdminInstitutions /> },
       { path: 'categories', element: <AdminCategories /> },
       { path: 'notifications', element: <AdminNotifications /> },
+    ]
+  },
+  {
+    path: 'institution-admin',
+    element: (
+      <ProtectedRoute adminOnly>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <Navigate to="/institution-admin/dashboard" replace /> },
+      { path: 'dashboard', element: <AdminHome /> },
     ]
   },
 ]);

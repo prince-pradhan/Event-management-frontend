@@ -2,15 +2,18 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef } f
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
-import { notificationApi } from '../api/endpoints';
+import { notificationApi, institutionsApi } from '../api/endpoints';
+import { USER_ROLE, INSTITUTION_STATUS } from '../utils/constants';
 
 const NotificationContext = createContext(null);
 
 export function NotificationProvider({ children }) {
-    const { user, isAuthenticated } = useAuth();
-    const { addToast } = useToast();
+    const auth = useAuth();
+    const { user, isAuthenticated, isSystemAdmin } = auth;
+    const addToast = useToast();
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [pendingInstitutions, setPendingInstitutions] = useState(0);
     const [loading, setLoading] = useState(false);
     const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, hasMore: false });
     const socketRef = useRef(null);
@@ -89,6 +92,24 @@ export function NotificationProvider({ children }) {
         [isAuthenticated, computeReadFlag]
     );
 
+    const fetchPendingInstitutions = useCallback(async () => {
+        if (!isAuthenticated || !isSystemAdmin) return;
+        try {
+            const res = await institutionsApi.list(INSTITUTION_STATUS.PENDING_VERIFICATION);
+            if (res.data?.success) {
+                setPendingInstitutions(res.data.institutions?.length || 0);
+            }
+        } catch (error) {
+            console.error('Failed to fetch pending institutions:', error);
+        }
+    }, [isAuthenticated, isSystemAdmin]);
+
+    useEffect(() => {
+        if (isAuthenticated && isSystemAdmin) {
+            fetchPendingInstitutions();
+        }
+    }, [isAuthenticated, isSystemAdmin, fetchPendingInstitutions]);
+
     useEffect(() => {
         if (isAuthenticated) {
             fetchNotifications({ page: 1, limit: 20, append: false });
@@ -117,6 +138,19 @@ export function NotificationProvider({ children }) {
 
             socket.on('receive_notification', (payload) => {
                 console.log('[Socket] New notification received:', payload);
+
+                if (payload.data?.action === 'REFRESH_PROFILE') {
+                    console.log('REFRESH_PROFILE action detected, refreshing user...');
+                    if (auth.refreshUser) {
+                        auth.refreshUser();
+                    }
+                }
+
+                if (payload.data?.action === 'VERIFY_INSTITUTION') {
+                    console.log('VERIFY_INSTITUTION action detected, incrementing pending institutions count...');
+                    setPendingInstitutions(prev => prev + 1);
+                }
+
                 setNotifications(prev => {
                     const next = [payload, ...prev];
                     const dedup = new Map(next.map(i => [i._id, i]));
@@ -144,21 +178,23 @@ export function NotificationProvider({ children }) {
             });
 
             return () => {
-                if (socket) {
-                    socket.disconnect();
+                if (socketRef.current) {
+                    console.log('[Socket] Disconnecting due to component unmount or auth change.');
+                    socketRef.current.disconnect();
                     socketRef.current = null;
                 }
             };
-        } else {
+        } else if (socketRef.current) {
+            console.log('[Socket] Disconnecting due to unauthentication.');
+            socketRef.current.disconnect();
+            socketRef.current = null;
+            // Clear state
             setNotifications([]);
             setUnreadCount(0);
+            setPendingInstitutions(0);
             setPagination({ page: 1, limit: 20, total: 0, hasMore: false });
-            if (socketRef.current) {
-                socketRef.current.disconnect();
-                socketRef.current = null;
-            }
         }
-    }, [isAuthenticated, user?._id, fetchNotifications, addToast]);
+    }, [isAuthenticated, user?._id]);
 
     const markAsRead = async (id) => {
         try {
@@ -218,9 +254,11 @@ export function NotificationProvider({ children }) {
     const value = {
         notifications,
         unreadCount,
+        pendingInstitutions,
         loading,
         pagination,
         fetchNotifications,
+        fetchPendingInstitutions,
         loadMore,
         markAsRead,
         markAllAsRead,
