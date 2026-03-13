@@ -40,7 +40,14 @@ export default function EventDetail() {
         eventsApi.getById(id)
             .then((res) => {
                 if (res.data?.success && res.data?.event) {
-                    setEvent(res.data.event);
+                    const eventData = res.data.event;
+                    // Check if event is draft
+                    if (eventData.status === EVENT_STATUS.DRAFT) {
+                        setError('This event is currently in draft and not available to the public.');
+                        setEvent(null);
+                    } else {
+                        setEvent(eventData);
+                    }
                 } else {
                     setError('Event not found');
                 }
