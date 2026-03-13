@@ -50,6 +50,10 @@ export function AuthProvider({ children }) {
   const login = async (credentials) => {
     const res = await authApi.login(credentials);
     if (res.data?.success && res.data?.user) {
+      // Set basic user data first to satisfy isAuthenticated and role checks immediately
+      setUser(res.data.user);
+      
+      // Then enrich with institution data if needed
       const userWithInst = await fetchInstitutionForUser(res.data.user);
       setUser(userWithInst);
     }
@@ -64,6 +68,7 @@ export function AuthProvider({ children }) {
   const signup = async (data) => {
     const res = await authApi.signup(data);
     if (res.data?.success && res.data?.user) {
+      setUser(res.data.user);
       const userWithInst = await fetchInstitutionForUser(res.data.user);
       setUser(userWithInst);
     }
@@ -73,6 +78,7 @@ export function AuthProvider({ children }) {
   const verifyEmail = async (code) => {
     const res = await authApi.verifyEmail(code);
     if (res.data?.success && res.data?.user) {
+      setUser(res.data.user);
       const userWithInst = await fetchInstitutionForUser(res.data.user);
       setUser(userWithInst);
     }
@@ -82,6 +88,7 @@ export function AuthProvider({ children }) {
   /** Call after Google (or other) auth that returns { success, user } */
   const setUserFromResponse = async (data) => {
     if (data?.success && data?.user) {
+      setUser(data.user);
       const userWithInst = await fetchInstitutionForUser(data.user);
       setUser(userWithInst);
     }
