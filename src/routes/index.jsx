@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ProtectedRoute from './ProtectedRoute';
-import { ROUTES } from '../utils/constants';
+import { ROUTES, USER_ROLE } from '../utils/constants';
 
 import Home from '../pages/public/Home';
 import Events from '../pages/public/Events';
@@ -94,7 +94,7 @@ const router = createBrowserRouter([
   {
     path: 'admin',
     element: (
-      <ProtectedRoute systemAdminOnly>
+      <ProtectedRoute allowedRoles={[USER_ROLE.SYSTEM_ADMIN, USER_ROLE.ADMIN]}>
         <AdminLayout />
       </ProtectedRoute>
     ),

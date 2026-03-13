@@ -108,9 +108,14 @@ export function AuthProvider({ children }) {
     user,
     loading,
     isAuthenticated: !!user,
-    isAdmin: user?.role === USER_ROLE.ADMIN || user?.role === USER_ROLE.SYSTEM_ADMIN || user?.role === USER_ROLE.INSTITUTION_ADMIN,
+    // isSystemAdmin: strictly for top-level system management (like institution verification)
     isSystemAdmin: user?.role === USER_ROLE.SYSTEM_ADMIN || user?.role === USER_ROLE.ADMIN,
+    // isRegularAdmin: strictly for the legacy ADMIN role if needed
+    isRegularAdmin: user?.role === USER_ROLE.ADMIN,
+    // isInstitutionAdmin: strictly for institution-level management
     isInstitutionAdmin: user?.role === USER_ROLE.INSTITUTION_ADMIN,
+    // isAdmin: any type of administrative role
+    isAdmin: user?.role === USER_ROLE.ADMIN || user?.role === USER_ROLE.SYSTEM_ADMIN || user?.role === USER_ROLE.INSTITUTION_ADMIN,
     login,
     logout,
     signup,

@@ -2,7 +2,12 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ROUTES, USER_ROLE } from '../utils/constants';
 
-export default function ProtectedRoute({ children, adminOnly = false, systemAdminOnly = false }) {
+export default function ProtectedRoute({ 
+  children, 
+  adminOnly = false, 
+  systemAdminOnly = false,
+  allowedRoles = [] 
+}) {
   const { user, loading, isAuthenticated, isAdmin, isSystemAdmin, isInstitutionAdmin } = useAuth();
   const location = useLocation();
 
@@ -16,6 +21,11 @@ export default function ProtectedRoute({ children, adminOnly = false, systemAdmi
 
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
+  }
+
+  // Role-based access control (RBAC) via allowedRoles array (Recommended)
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
+    return <Navigate to={isInstitutionAdmin ? ROUTES.INSTITUTION_ADMIN_DASHBOARD : ROUTES.STUDENT_DASHBOARD} replace />;
   }
 
   // System Admin only routes (e.g., /admin/*)
