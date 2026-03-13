@@ -13,7 +13,7 @@ export default function Events() {
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0 });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ search: '', category: '', status: '', page: 1, limit: 20 });
+  const [filters, setFilters] = useState({ search: '', category: '', status: 'PUBLISHED', page: 1, limit: 20 });
   const location = useLocation();
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function Events() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search || '');
-    const status = params.get('status') || '';
+    const status = params.get('status') || 'PUBLISHED';
     const category = params.get('category') || '';
     const search = params.get('search') || '';
     const page = Number(params.get('page') || 1);
@@ -44,10 +44,10 @@ export default function Events() {
     const params = {
       page: filters.page || 1,
       limit: filters.limit || 20,
+      status: filters.status,
     };
     if (filters.search) params.search = filters.search;
     if (filters.category) params.category = filters.category;
-    if (filters.status) params.status = filters.status;
 
     eventsApi
       .getAll(params)

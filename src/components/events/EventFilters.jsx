@@ -55,10 +55,8 @@ export default function EventFilters({ filters, onFilterChange, categories = [] 
             focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500
             hover:border-slate-300 transition-colors"
         >
-          <option value="">All statuses</option>
-          <option value="UPCOMING">Upcoming</option>
           <option value="PUBLISHED">Published</option>
-          <option value="DRAFT">Draft</option>
+          <option value="UPCOMING">Upcoming</option>
           <option value="COMPLETED">Completed</option>
           <option value="CANCELLED">Cancelled</option>
         </select>

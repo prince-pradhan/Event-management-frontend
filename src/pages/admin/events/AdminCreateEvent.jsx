@@ -30,6 +30,7 @@ export default function AdminCreateEvent() {
         // Capacity & Price
         totalSeats: '',
         price: 0,
+        status: EVENT_STATUS.PUBLISHED,
         // Media
         bannerImage: '',
     });
@@ -107,7 +108,7 @@ export default function AdminCreateEvent() {
                 title: formData.title,
                 description: formData.description,
                 category: formData.category,
-                status: EVENT_STATUS.DRAFT,
+                status: formData.status,
                 startDate: toUTC(formData.startDate),
                 endDate: toUTC(formData.endDate),
                 registrationStartDate: toUTC(formData.registrationStartDate),
@@ -335,6 +336,20 @@ export default function AdminCreateEvent() {
                         </div>
 
                         <div className="space-y-8">
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Event Status</label>
+                                <select
+                                    name="status"
+                                    required
+                                    value={formData.status}
+                                    onChange={handleChange}
+                                    className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 bg-white font-bold text-slate-900 shadow-sm appearance-none"
+                                >
+                                    <option value={EVENT_STATUS.PUBLISHED}>Publish</option>
+                                    <option value={EVENT_STATUS.DRAFT}>Draft</option>
+                                </select>
+                            </div>
+
                             <div>
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Niche / Category</label>
                                 <select

@@ -23,6 +23,7 @@ import { eventsApi, registrationsApi } from '../../api/endpoints';
 export default function StudentDashboard() {
   const { user, isAdmin, logout } = useAuth();
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [totalAvailable, setTotalAvailable] = useState(0);
   const [teaserUpcoming, setTeaserUpcoming] = useState([]);
   const [myRegistrations, setMyRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,13 +36,14 @@ export default function StudentDashboard() {
       setLoading(true);
       try {
         const [eventsRes, regsRes, upcomingRes] = await Promise.all([
-          eventsApi.getAll({ limit: 4 }),
+          eventsApi.getAll({ status: 'PUBLISHED', limit: 4 }), // Only published for recommendation
           registrationsApi.getMyRegistrations(),
           eventsApi.getAll({ status: 'UPCOMING', limit: 3, page: 1 })
         ]);
 
         if (eventsRes.data.success) {
           setUpcomingEvents(eventsRes.data.events);
+          setTotalAvailable(eventsRes.data.pagination?.total || 0);
         }
         if (regsRes.data.success) {
           setMyRegistrations(regsRes.data.registrations);
@@ -169,7 +171,7 @@ export default function StudentDashboard() {
             <DashboardStatCard 
               to={ROUTES.EVENTS}
               icon={<Calendar className="w-6 h-6 text-primary-600" />}
-              value={upcomingEvents.length + "+"}
+              value={totalAvailable}
               label="Events Available"
               bgClass="bg-white border border-slate-200"
               textClass="text-slate-900"
