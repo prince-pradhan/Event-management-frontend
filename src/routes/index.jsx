@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ProtectedRoute from './ProtectedRoute';
-import { ROUTES } from '../utils/constants';
+import { ROUTES, USER_ROLE } from '../utils/constants';
 
 import Home from '../pages/public/Home';
 import Events from '../pages/public/Events';
@@ -94,7 +94,7 @@ const router = createBrowserRouter([
   {
     path: 'admin',
     element: (
-      <ProtectedRoute systemAdminOnly>
+      <ProtectedRoute allowedRoles={[USER_ROLE.SYSTEM_ADMIN, USER_ROLE.ADMIN]}>
         <AdminLayout />
       </ProtectedRoute>
     ),
@@ -123,6 +123,13 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/institution-admin/dashboard" replace /> },
       { path: 'dashboard', element: <AdminHome /> },
+      { path: 'events', element: <AdminEvents /> },
+      { path: 'events/new', element: <AdminCreateEvent /> },
+      { path: 'events/:id/edit', element: <AdminEditEvent /> },
+      { path: 'events/:id/reviews', element: <AdminEventReviews /> },
+      { path: 'events/:eventId/registrations', element: <EventRegistrations /> },
+      { path: 'categories', element: <AdminCategories /> },
+      { path: 'notifications', element: <AdminNotifications /> },
     ]
   },
 ]);

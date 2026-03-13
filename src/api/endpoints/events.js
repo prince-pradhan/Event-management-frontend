@@ -10,6 +10,7 @@ import apiClient from '../apiClient';
  */
 export const eventsApi = {
   getAll: (params) => apiClient.get('/events', { params }),
+  getByInstitution: (institutionId, params) => apiClient.get(`/events/institution/${institutionId}`, { params }),
   getById: (id) => apiClient.get(`/events/${id}`),
   create: (data) => apiClient.post('/events', data),
   update: (id, data) => apiClient.put(`/events/${id}`, data),

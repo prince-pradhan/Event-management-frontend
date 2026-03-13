@@ -53,11 +53,21 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     const { pendingInstitutions } = useNotifications();
     const location = useLocation();
 
+    // Determine path prefix based on role
+    const pathPrefix = isSystemAdmin ? '/admin' : '/institution-admin';
+
     const filteredNavItems = navItems.map(item => {
-        if (item.name === 'Institutions') {
-            return { ...item, badge: pendingInstitutions };
+        let path = item.path;
+        
+        // Rewrite path for Institution Admin if it starts with /admin
+        if (isInstitutionAdmin && path.startsWith('/admin')) {
+            path = path.replace('/admin', '/institution-admin');
         }
-        return item;
+
+        if (item.name === 'Institutions') {
+            return { ...item, path, badge: pendingInstitutions };
+        }
+        return { ...item, path };
     }).filter(item => {
         if (item.isSystemAdminOnly && !isSystemAdmin) return false;
         if (item.role && !item.role.includes(user?.role)) return false;
