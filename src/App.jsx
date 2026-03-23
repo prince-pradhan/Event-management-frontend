@@ -6,8 +6,10 @@ import AppRouter from "./routes";
 import "./styles/index.css";
 
 export default function App() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
   return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={googleClientId}>
       <ToastProvider>
         <AuthProvider>
           <NotificationProvider>

@@ -121,15 +121,28 @@ export default function Register() {
                                     navigate(ROUTES.STUDENT_DASHBOARD, { replace: true });
                                 }
                             } catch (err) {
+                                const status = err?.response?.status;
+                                const message = err?.response?.data?.message;
+                                console.error("Google sign-in failed:", {
+                                    status,
+                                    message,
+                                    data: err?.response?.data,
+                                });
                                 setError(
-                                    err.response?.data?.message || "Google sign-in failed. Please try again.",
+                                    message ||
+                                        `Google sign-in failed${status ? ` (HTTP ${status})` : ""}. Please try again.`,
                                 );
                             } finally {
                                 setLoading(false);
                             }
                         }}
-                        onError={() => {
-                            setError("Google sign-in was cancelled or failed.");
+                        onError={(err) => {
+                            console.error("GoogleLogin error:", err);
+                            setError(
+                                err?.error_description ||
+                                    err?.message ||
+                                    "Google sign-in was cancelled or failed. Check console details.",
+                            );
                         }}
                     />
                 </div>
