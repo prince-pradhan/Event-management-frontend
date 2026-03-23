@@ -139,6 +139,29 @@ export function NotificationProvider({ children }) {
             socket.on('receive_notification', (payload) => {
                 console.log('[Socket] New notification received:', payload);
 
+                // Some backend emits might broadcast the notification to all clients even for TARGETED/PERSONALIZED scopes.
+                // Filter on the frontend using `recipient` / `allowedUsers` so only the intended user sees it.
+                if (user?._id) {
+                    const myId = user._id.toString();
+                    const scope = payload?.scope;
+                    if (scope !== 'BROADCAST') {
+                        const recipient = payload?.recipient?._id
+                            ? payload.recipient._id
+                            : payload?.recipient;
+                        const allowedUsers = Array.isArray(payload?.allowedUsers) ? payload.allowedUsers : null;
+
+                        const hasHints = Boolean(recipient) || Boolean(allowedUsers);
+                        const recipientMatch = recipient?.toString?.() === myId;
+                        const allowedMatch = allowedUsers?.some((u) => u?.toString?.() === myId || u?._id?.toString?.() === myId);
+
+                        // If we have routing hints, enforce them; otherwise, assume socket-room delivery was already correct.
+                        if (hasHints && !(recipientMatch || allowedMatch)) return;
+                    }
+                } else {
+                    // If we don't know the current user yet, ignore real-time notifications.
+                    return;
+                }
+
                 if (payload.data?.action === 'REFRESH_PROFILE') {
                     console.log('REFRESH_PROFILE action detected, refreshing user...');
                     if (auth.refreshUser) {

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
@@ -5,6 +6,7 @@ import { ROUTES, USER_ROLE } from '../../../utils/constants';
 import { useAdminEvents } from '../../../hooks/useAdminEvents';
 import StatusDropdown from './components/StatusDropdown';
 import { useAuth } from '../../../context/AuthContext';
+import { institutionsApi } from '../../../api/endpoints/institutions';
 
 function formatDate(dateStr) {
   return dateStr ? new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
@@ -18,6 +20,62 @@ export default function AdminEvents() {
   const institutionId = user?.role === USER_ROLE.INSTITUTION_ADMIN ? user.institution : undefined;
   
   const { events, loading, error, deleteEvent, updateEventStatus } = useAdminEvents(institutionId);
+
+  const [institutionNameById, setInstitutionNameById] = useState({});
+
+  // For institution-admin, we already have their institution name in auth context.
+  const singleInstitutionName = !isSystemAdmin ? user?.institutionData?.name : null;
+
+  useEffect(() => {
+    if (!isSystemAdmin) return;
+    if (!events?.length) return;
+
+    const institutionIds = Array.from(
+      new Set(
+        events
+          .map((e) => (e?.institution && typeof e.institution === 'string' ? e.institution : null))
+          .filter(Boolean)
+      )
+    );
+
+    if (institutionIds.length === 0) return;
+
+    let mounted = true;
+
+    async function loadInstitutionNames() {
+      try {
+        const missing = institutionIds.filter((id) => !institutionNameById[id]);
+        if (missing.length === 0) return;
+
+        const results = await Promise.all(
+          missing.map((id) =>
+            institutionsApi
+              .getById(id)
+              .then((r) => ({ id, name: r.data?.institution?.name || null }))
+              .catch(() => ({ id, name: null }))
+          )
+        );
+
+        if (!mounted) return;
+        setInstitutionNameById((prev) => {
+          const next = { ...prev };
+          results.forEach(({ id, name }) => {
+            next[id] = name;
+          });
+          return next;
+        });
+      } catch (e) {
+        // Non-fatal: we can still render rows without institution name
+        console.warn('Failed to load institution names for events:', e);
+      }
+    }
+
+    loadInstitutionNames();
+    return () => {
+      mounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events, isSystemAdmin]);
 
   // Helper to resolve admin path based on role
   const getAdminPath = (path) => {
@@ -71,6 +129,7 @@ export default function AdminEvents() {
                 <th className="text-left px-6 py-5 text-[10px] font-black text-slate-400">Category</th>
                 <th className="text-left px-6 py-5 text-[10px] font-black text-slate-400">Date</th>
                 <th className="text-left px-6 py-5 text-[10px] font-black text-slate-400">Seats</th>
+                <th className="text-left px-6 py-5 text-[10px] font-black text-slate-400">Institution</th>
                 <th className="text-left px-6 py-5 text-[10px] font-black text-slate-400">Status</th>
                 <th className="text-right px-6 py-5 text-[10px] font-black text-slate-400">Actions</th>
               </tr>
@@ -78,7 +137,7 @@ export default function AdminEvents() {
             <tbody className="divide-y divide-slate-50">
               {events.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-16 text-center">
+                  <td colSpan="7" className="px-6 py-16 text-center">
                     <div className="text-4xl mb-4">📅</div>
                     <p className="text-slate-400 font-medium">No events found. Click "New Event" to create one.</p>
                   </td>
@@ -104,6 +163,33 @@ export default function AdminEvents() {
                         <span className="text-xs font-bold text-slate-600 italic">
                           {event.availableSeats ?? 0}/{event.totalSeats ?? 0}
                         </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="min-w-[160px]">
+                        {singleInstitutionName ? (
+                          <p className="text-xs font-bold text-slate-800 truncate" title={singleInstitutionName || ''}>
+                            {singleInstitutionName || '—'}
+                          </p>
+                        ) : (
+                          <>
+                            <p
+                              className="text-xs font-bold text-slate-800 truncate"
+                              title={
+                                (typeof event.institution === 'object' ? event.institution?.name : null) ||
+                                institutionNameById[event.institution] ||
+                                ''
+                              }
+                            >
+                              {typeof event.institution === 'object'
+                                ? (event.institution?.name || '—')
+                                : (institutionNameById[event.institution] || '—')}
+                            </p>
+                            <p className="text-[11px] font-medium text-slate-400 truncate" title={event.organizer?.email || ''}>
+                              {event.organizer?.email || ''}
+                            </p>
+                          </>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
