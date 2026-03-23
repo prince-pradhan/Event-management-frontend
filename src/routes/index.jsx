@@ -15,6 +15,7 @@ import CongratulationsPage from '../pages/auth/CongratulationsPage';
 
 import StudentDashboard from '../pages/student/Dashboard';
 import StudentProfile from '../pages/student/Profile';
+import StudentCalendar from '../pages/student/Calendar';
 import MyRegistrations from '../pages/student/MyRegistrations';
 import InstitutionApply from '../pages/student/InstitutionApply';
 import Notifications from '../pages/student/Notifications';
@@ -62,6 +63,14 @@ const router = createBrowserRouter([
             element: (
               <ProtectedRoute>
                 <StudentProfile />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'calendar',
+            element: (
+              <ProtectedRoute>
+                <StudentCalendar />
               </ProtectedRoute>
             ),
           },

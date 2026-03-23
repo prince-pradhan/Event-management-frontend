@@ -14,6 +14,7 @@ export const ROUTES = {
   // Student routes (when logged in as student)
   STUDENT_DASHBOARD: '/student/dashboard',
   STUDENT_PROFILE: '/student/profile',
+  STUDENT_CALENDAR: '/student/calendar',
   STUDENT_MY_REGISTRATIONS: '/student/my-registrations',
   STUDENT_NOTIFICATIONS: '/student/notifications',
   INSTITUTION_APPLY: '/student/institution-apply',

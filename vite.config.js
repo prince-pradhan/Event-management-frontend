@@ -5,6 +5,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
+    // Prevent Vite from silently switching ports; Google OAuth authorized origins often depend on the exact port.
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'http://localhost:7100',

@@ -159,7 +159,7 @@ export default function StudentDashboard() {
         <div className="lg:col-span-8 space-y-10">
           
           {/* Quick Stats Row */}
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <DashboardStatCard 
               to={ROUTES.STUDENT_MY_REGISTRATIONS}
               icon={<Ticket className="w-6 h-6 text-white" />}
@@ -173,6 +173,14 @@ export default function StudentDashboard() {
               icon={<Calendar className="w-6 h-6 text-primary-600" />}
               value={totalAvailable}
               label="Events Available"
+              bgClass="bg-white border border-slate-200"
+              textClass="text-slate-900"
+            />
+            <DashboardStatCard
+              to={ROUTES.STUDENT_CALENDAR}
+              icon={<Calendar className="w-6 h-6 text-primary-600" />}
+              value={myRegistrations.length}
+              label="My Calendar"
               bgClass="bg-white border border-slate-200"
               textClass="text-slate-900"
             />
