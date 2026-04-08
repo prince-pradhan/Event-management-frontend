@@ -100,6 +100,14 @@ export default function EventDetail() {
             return;
         }
 
+        const confirmMsg = event.isFree 
+            ? `Are you sure you want to register for ${event.title}? It's a free event.`
+            : `Are you sure you want to register for ${event.title}? This is a paid event (${event.price || '0'}). You will need to complete payment after this step.`;
+
+        if (!window.confirm(confirmMsg)) {
+            return;
+        }
+
         // If event has custom fields, show modal
         if (event.registrationFields && event.registrationFields.length > 0) {
             // Initialize regData
