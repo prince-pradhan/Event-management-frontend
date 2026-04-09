@@ -109,8 +109,7 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Navigate to="/admin/dashboard" replace /> },
-      { path: 'dashboard', element: <AdminHome /> },
-      { path: 'management', element: <AdminDashboard /> },
+      { path: 'dashboard', element: <AdminDashboard /> },
       { path: 'events', element: <AdminEvents /> },
       { path: 'events/new', element: <AdminCreateEvent /> },
       { path: 'events/:id/edit', element: <AdminEditEvent /> },
@@ -131,7 +130,7 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Navigate to="/institution-admin/dashboard" replace /> },
-      { path: 'dashboard', element: <AdminHome /> },
+      { path: 'dashboard', element: <AdminDashboard showUsersCard={false} institutionOnly /> },
       { path: 'events', element: <AdminEvents /> },
       { path: 'events/new', element: <AdminCreateEvent /> },
       { path: 'events/:id/edit', element: <AdminEditEvent /> },

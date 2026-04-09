@@ -1,6 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { 
   Ticket, 
   Calendar, 
@@ -10,7 +12,8 @@ import {
   Filter,
   ArrowUpRight,
   Download,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -21,11 +24,13 @@ import { registrationsApi } from '../../api/endpoints';
 export default function MyRegistrations() {
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
   const [filter, setFilter] = useState('all');
   
   // Ticket Modal State
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [selectedReg, setSelectedReg] = useState(null);
+  const ticketRef = useRef(null);
 
   useEffect(() => {
     const fetchRegistrations = async () => {
@@ -85,13 +90,37 @@ export default function MyRegistrations() {
     setShowTicketModal(true);
   };
 
-  const downloadTicket = () => {
-    if (!selectedReg) return;
+  const downloadTicket = async () => {
+    if (!selectedReg || !ticketRef.current) return;
     
-    // In a real app, this might call a backend endpoint to get a PDF
-    // For now, we'll alert that the feature is ready for PDF integration
-    // or we could use html2canvas/jspdf on the client side.
-    alert('Ticket download started... (PDF generation)');
+    try {
+      setDownloading(true);
+      const canvas = await html2canvas(ticketRef.current, {
+        scale: 2,
+        backgroundColor: '#f8fafc',
+        logging: false,
+        useCORS: true
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a5'
+      });
+      
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`ticket-${selectedReg.event?.title}-${selectedReg._id.slice(-6)}.pdf`);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      alert('Failed to download ticket. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -267,7 +296,10 @@ export default function MyRegistrations() {
       >
         {selectedReg && (
           <div className="space-y-6">
-            <div className="bg-slate-50 p-6 rounded-2xl border-2 border-dashed border-slate-200 relative overflow-hidden">
+            <div 
+              ref={ticketRef}
+              className="bg-slate-50 p-6 rounded-2xl border-2 border-dashed border-slate-200 relative overflow-hidden"
+            >
               {/* Ticket Top */}
               <div className="flex justify-between items-start mb-6">
                 <div>
@@ -313,15 +345,26 @@ export default function MyRegistrations() {
                 variant="secondary" 
                 className="flex-1 flex items-center justify-center gap-2"
                 onClick={() => setShowTicketModal(false)}
+                disabled={downloading}
               >
                 Close
               </Button>
               <Button 
                 className="flex-1 flex items-center justify-center gap-2"
                 onClick={downloadTicket}
+                disabled={downloading}
               >
-                <Download className="w-4 h-4" />
-                Download PDF
+                {downloading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    Download PDF
+                  </>
+                )}
               </Button>
             </div>
           </div>
