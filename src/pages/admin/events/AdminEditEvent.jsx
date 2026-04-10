@@ -140,12 +140,41 @@ export default function AdminEditEvent() {
                 setSaving(false);
                 return;
             }
+            const now = new Date();
             const startLocal = new Date(formData.startDate);
             const endLocal = new Date(formData.endDate);
+
+            // Only validate past dates if the start date was changed to a NEW value
+            // (Otherwise we might block editing an event that already started)
+            // But usually, we want to prevent moving an event to the past.
+            if (startLocal < now) {
+                setError('Event start date cannot be in the past');
+                setSaving(false);
+                return;
+            }
+
             if (endLocal <= startLocal) {
                 setError('End date must be after start date');
                 setSaving(false);
                 return;
+            }
+
+            if (formData.registrationStartDate) {
+                const regStart = new Date(formData.registrationStartDate);
+                if (regStart > startLocal) {
+                    setError('Registration must start before the event starts');
+                    setSaving(false);
+                    return;
+                }
+            }
+
+            if (formData.registrationEndDate) {
+                const regEnd = new Date(formData.registrationEndDate);
+                if (regEnd > startLocal) {
+                    setError('Registration must end before the event starts');
+                    setSaving(false);
+                    return;
+                }
             }
             if (Number(formData.price) < 0) {
                 setError('Price cannot be negative');

@@ -90,12 +90,38 @@ export default function AdminCreateEvent() {
                 setLoading(false);
                 return;
             }
+            const now = new Date();
             const start = new Date(formData.startDate);
             const end = new Date(formData.endDate);
+
+            if (start < now) {
+                setError('Event start date cannot be in the past');
+                setLoading(false);
+                return;
+            }
+
             if (end <= start) {
                 setError('End date must be after start date');
                 setLoading(false);
                 return;
+            }
+
+            if (formData.registrationStartDate) {
+                const regStart = new Date(formData.registrationStartDate);
+                if (regStart > start) {
+                    setError('Registration must start before the event starts');
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            if (formData.registrationEndDate) {
+                const regEnd = new Date(formData.registrationEndDate);
+                if (regEnd > start) {
+                    setError('Registration must end before the event starts');
+                    setLoading(false);
+                    return;
+                }
             }
             if (Number(formData.price) < 0) {
                 setError('Price cannot be negative');
