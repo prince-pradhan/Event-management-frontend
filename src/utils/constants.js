@@ -21,6 +21,7 @@ export const ROUTES = {
   // Admin routes (when logged in as admin)
   ADMIN_DASHBOARD: '/admin/dashboard',
   ADMIN_EVENTS: '/admin/events',
+  ADMIN_EVENT_DETAIL: '/admin/events/:id',
   ADMIN_EVENTS_CREATE: '/admin/events/new',
   ADMIN_EVENT_EDIT: '/admin/events/:id/edit',
   ADMIN_EVENT_REVIEWS: '/admin/events/:id/reviews',

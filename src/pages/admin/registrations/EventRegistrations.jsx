@@ -117,8 +117,8 @@ export default function EventRegistrations() {
         <div className="max-w-6xl mx-auto space-y-10">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 border-b border-slate-100 pb-10">
                 <div>
-                    <Link to={getAdminPath(ROUTES.ADMIN_EVENTS)} className="text-xs font-black text-primary-600 hover:text-primary-700 mb-4 inline-block uppercase tracking-[0.2em] transition-all">
-                        ← Return to Events
+                    <Link to={getAdminPath(ROUTES.ADMIN_EVENT_DETAIL.replace(':id', eventId))} className="text-xs font-black text-primary-600 hover:text-primary-700 mb-4 inline-block uppercase tracking-[0.2em] transition-all">
+                        ← Return to Event Details
                     </Link>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">
                         {event?.title || 'Event Registrations'}

@@ -163,10 +163,15 @@ export default function AdminDashboard({ showUsersCard = true, institutionOnly =
     localStorage.setItem('verificationBannerDismissed', 'true');
   };
 
+  const getAdminPath = (path) => {
+    const prefix = institutionOnly ? '/institution-admin' : '/admin';
+    return path.replace('/admin', prefix);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
+        <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
       </div>
     );
   }
@@ -179,29 +184,52 @@ export default function AdminDashboard({ showUsersCard = true, institutionOnly =
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Dashboard</h1>
-          <p className="text-slate-500 font-medium">Welcome back, {user?.name}</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Dashboard Overview</h1>
+          <p className="text-slate-500 font-medium">Welcome back, {user?.name}. Here's what's happening today.</p>
         </div>
         <div className="flex gap-3">
           <Button 
             variant="primary" 
-            className="flex items-center gap-2 shadow-lg shadow-primary-900/20"
-            onClick={() => navigate(ROUTES.ADMIN_CREATE_EVENT)}
+            className="flex items-center gap-2 shadow-lg shadow-primary-900/20 px-6"
+            onClick={() => navigate(getAdminPath(ROUTES.ADMIN_EVENTS_CREATE))}
           >
             <Plus className="w-4 h-4" />
-            Create Event
+            Create New Event
           </Button>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        <StatCard label="Total Events" value={stats.totalEvents} icon={<Calendar className="w-6 h-6" />} color="bg-blue-500" />
+        <StatCard 
+          label="Total Events" 
+          value={stats.totalEvents} 
+          icon={<Calendar className="w-6 h-6" />} 
+          color="bg-blue-500" 
+          onClick={() => navigate(getAdminPath('/admin/events'))}
+        />
         {showUsersCard && (
-          <StatCard label="Total Users" value={stats.totalUsers} icon={<Users className="w-6 h-6" />} color="bg-purple-500" />
+          <StatCard 
+            label="Total Users" 
+            value={stats.totalUsers} 
+            icon={<Users className="w-6 h-6" />} 
+            color="bg-purple-500" 
+            onClick={() => navigate('/admin/users')}
+          />
         )}
-        <StatCard label="Total Attendees" value={stats.activeRegistrations} icon={<TrendingUp className="w-6 h-6" />} color="bg-emerald-500" />
-        <StatCard label="Revenue" value={`$${stats.revenue}`} icon={<BarChart3 className="w-6 h-6" />} color="bg-amber-500" />
+        <StatCard 
+          label="Total Attendees" 
+          value={stats.activeRegistrations} 
+          icon={<TrendingUp className="w-6 h-6" />} 
+          color="bg-emerald-500" 
+          onClick={() => navigate(getAdminPath('/admin/events'))}
+        />
+        <StatCard 
+          label="Revenue" 
+          value={`$${stats.revenue}`} 
+          icon={<BarChart3 className="w-6 h-6" />} 
+          color="bg-amber-500" 
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
@@ -269,11 +297,30 @@ export default function AdminDashboard({ showUsersCard = true, institutionOnly =
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 text-right">
-                        <button className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all">
+                    <td className="py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(getAdminPath(ROUTES.ADMIN_EVENT_REGISTRATIONS.replace(':id', event._id)));
+                          }}
+                          className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                          title="View Attendees"
+                        >
+                          <Users className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(getAdminPath(`/admin/events/${event._id}`));
+                          }}
+                          className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all"
+                          title="View Details"
+                        >
                           <ChevronRight className="w-5 h-5" />
                         </button>
-                      </td>
+                      </div>
+                    </td>
                     </tr>
                   ))}
                 </tbody>
@@ -303,7 +350,9 @@ export default function AdminDashboard({ showUsersCard = true, institutionOnly =
             
             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {loadingAttendees ? (
-                <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-slate-300" /></div>
+                <div className="flex justify-center py-8">
+                  <div className="w-6 h-6 border-2 border-primary-100 border-t-primary-600 rounded-full animate-spin" />
+                </div>
               ) : attendees.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-sm text-slate-400 italic">No attendees for this event yet.</p>
@@ -334,17 +383,25 @@ export default function AdminDashboard({ showUsersCard = true, institutionOnly =
   );
 }
 
-function StatCard({ label, value, icon, color }) {
+function StatCard({ label, value, icon, color, onClick }) {
   return (
-    <Card className="p-6 shadow-soft border-0 hover:shadow-lg transition-all group overflow-hidden relative">
+    <Card 
+      className={`p-6 shadow-soft border-0 transition-all group overflow-hidden relative ${onClick ? 'cursor-pointer hover:shadow-xl hover:-translate-y-1' : ''}`}
+      onClick={onClick}
+    >
       <div className="relative z-10">
-        <div className={`p-3 rounded-2xl ${color} text-white w-fit mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
+        <div className={`p-3 rounded-2xl ${color} text-white w-fit mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
           {icon}
         </div>
         <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">{label}</p>
         <p className="text-3xl font-black text-slate-900">{value}</p>
+        {onClick && (
+          <div className="mt-4 flex items-center text-xs font-bold text-primary-600 uppercase tracking-tight opacity-0 group-hover:opacity-100 transition-opacity">
+            View Details <ChevronRight className="w-3 h-3 ml-1" />
+          </div>
+        )}
       </div>
-      <div className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full ${color} opacity-[0.03] group-hover:scale-150 transition-transform duration-500`} />
+      <div className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full ${color} opacity-[0.05] group-hover:scale-150 transition-transform duration-500`} />
     </Card>
   );
 }

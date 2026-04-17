@@ -108,6 +108,11 @@ export default function AdminCreateEvent() {
 
             if (formData.registrationStartDate) {
                 const regStart = new Date(formData.registrationStartDate);
+                if (regStart < now) {
+                    setError('Registration start date cannot be in the past');
+                    setLoading(false);
+                    return;
+                }
                 if (regStart > start) {
                     setError('Registration must start before the event starts');
                     setLoading(false);
@@ -117,6 +122,11 @@ export default function AdminCreateEvent() {
 
             if (formData.registrationEndDate) {
                 const regEnd = new Date(formData.registrationEndDate);
+                if (regEnd < now) {
+                    setError('Registration end date cannot be in the past');
+                    setLoading(false);
+                    return;
+                }
                 if (regEnd > start) {
                     setError('Registration must end before the event starts');
                     setLoading(false);
