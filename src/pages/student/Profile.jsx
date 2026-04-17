@@ -150,10 +150,10 @@ export default function StudentProfile() {
         <div className="lg:col-span-2 space-y-6">
           {/* Personal Info */}
           <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
+            {/* <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-slate-900">Personal Information</h3>
               <Button variant="secondary" size="sm">Edit</Button>
-            </div>
+            </div> */}
             
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-1">

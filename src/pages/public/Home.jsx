@@ -52,8 +52,8 @@ export default function Home() {
     if (!isAuthenticated) {
       const fetchEvents = async () => {
         try {
-          // Fetch only events marked as UPCOMING by admin
-          const response = await eventsApi.getAll({ status: 'UPCOMING', limit: 6, page: 1 });
+          // Fetch only published events
+          const response = await eventsApi.getAll({ status: 'PUBLISHED', limit: 6, page: 1 });
           if (response.data.success) {
             setUpcomingEvents(response.data.events || []);
           }
@@ -241,8 +241,8 @@ export default function Home() {
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Upcoming Events</h2>
               <p className="text-lg text-slate-600">Don't miss out on what's happening next.</p>
             </div>
-            <Link to={`${ROUTES.EVENTS}?status=UPCOMING`} className="hidden md:inline-flex items-center font-bold text-primary-600 hover:text-primary-700 transition-colors">
-              View Upcoming <ArrowRight className="ml-2 w-4 h-4" />
+            <Link to={`${ROUTES.EVENTS}?status=PUBLISHED`} className="hidden md:inline-flex items-center font-bold text-primary-600 hover:text-primary-700 transition-colors">
+              View All Events <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
           </div>
 
@@ -261,14 +261,14 @@ export default function Home() {
           ) : (
             <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
               <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 font-medium">No upcoming events found right now.</p>
+              <p className="text-slate-500 font-medium">No events found right now.</p>
               <Link to={ROUTES.EVENTS} className="text-primary-600 font-bold mt-2 inline-block hover:underline">Check back later</Link>
             </div>
           )}
           
           <div className="mt-10 text-center md:hidden">
-            <Link to={`${ROUTES.EVENTS}?status=UPCOMING`}>
-              <Button className="w-full">View Upcoming</Button>
+            <Link to={`${ROUTES.EVENTS}?status=PUBLISHED`}>
+              <Button className="w-full">View All Events</Button>
             </Link>
           </div>
         </div>

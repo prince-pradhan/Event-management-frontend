@@ -24,7 +24,6 @@ export default function StudentDashboard() {
   const { user, isAdmin, logout } = useAuth();
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [totalAvailable, setTotalAvailable] = useState(0);
-  const [teaserUpcoming, setTeaserUpcoming] = useState([]);
   const [myRegistrations, setMyRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bannerDismissed, setBannerDismissed] = useState(
@@ -38,7 +37,6 @@ export default function StudentDashboard() {
         const [eventsRes, regsRes, upcomingRes] = await Promise.all([
           eventsApi.getAll({ status: 'PUBLISHED', limit: 4 }), // Only published for recommendation
           registrationsApi.getMyRegistrations(),
-          eventsApi.getAll({ status: 'UPCOMING', limit: 3, page: 1 })
         ]);
 
         if (eventsRes.data.success) {
@@ -47,9 +45,6 @@ export default function StudentDashboard() {
         }
         if (regsRes.data.success) {
           setMyRegistrations(regsRes.data.registrations);
-        }
-        if (upcomingRes.data?.success) {
-          setTeaserUpcoming(upcomingRes.data.events || []);
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
@@ -105,46 +100,6 @@ export default function StudentDashboard() {
              <LogOut className="w-4 h-4" />
              Sign Out
            </button> */}
-        </div>
-      </div>
-
-      {/* Upcoming Teaser Strip */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 lg:p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <h3 className="text-sm font-black text-slate-900 tracking-widest uppercase">Upcoming</h3>
-          </div>
-          <Link to={`${ROUTES.EVENTS}?status=UPCOMING`} className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1">
-            See all <ArrowRight className="w-3 h-3" />
-          </Link>
-        </div>
-        <div className="flex gap-3 overflow-x-auto pb-1">
-          {loading && teaserUpcoming.length === 0 ? (
-            [1,2,3].map(i => <div key={i} className="min-w-[220px] h-16 bg-slate-50 rounded-2xl border border-slate-100 animate-pulse" />)
-          ) : teaserUpcoming.length === 0 ? (
-            <div className="text-xs text-slate-500 font-medium px-2 py-1">No upcoming events</div>
-          ) : (
-            teaserUpcoming.map(ev => {
-              const date = new Date(ev.startDate);
-              const dd = date.getDate();
-              const mm = date.toLocaleString('default', { month: 'short' });
-              return (
-                <Link to={`${ROUTES.EVENTS}/${ev._id}`} key={ev._id} className="min-w-[240px]">
-                  <div className="h-full bg-gradient-to-br from-slate-50 to-white rounded-2xl border border-slate-100 px-4 py-3 hover:border-primary-100 hover:shadow-md transition-all flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex flex-col items-center justify-center text-slate-900">
-                      <span className="text-[10px] font-bold uppercase">{mm}</span>
-                      <span className="text-lg font-black leading-none">{dd}</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-900 truncate">{ev.title}</p>
-                      <p className="text-xs text-slate-500 truncate">{ev.location?.venue || 'TBA'}</p>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })
-          )}
         </div>
       </div>
 

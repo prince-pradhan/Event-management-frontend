@@ -9,6 +9,10 @@ import { getCategoryLabel } from '../../utils/constants';
  */
 export default function EventCard({ event }) {
   const { _id, title, description, startDate, location, category, bannerImage, status } = event;
+  const now = new Date();
+  const registrationStartDate = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
+  const registrationStartsSoon = status === 'PUBLISHED' && registrationStartDate && now < registrationStartDate;
+
   const bannerUrl = typeof bannerImage === 'string' ? bannerImage : bannerImage?.url;
   const categoryLabel = getCategoryLabel(category);
   const date = startDate
@@ -41,14 +45,19 @@ export default function EventCard({ event }) {
           {description && (
             <p className="mt-2 text-sm text-slate-600 line-clamp-2">{description}</p>
           )}
+
+          {registrationStartsSoon && (
+            <div className="mt-3 flex items-center gap-1.5 text-[11px] font-bold text-primary-600 bg-primary-50 px-2.5 py-1 rounded-lg border border-primary-100 w-fit">
+              <span className="animate-pulse">🔔</span>
+              <span>Reg Starts: {registrationStartDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+            </div>
+          )}
+
           <div className="mt-auto pt-4 flex justify-between items-center text-sm text-slate-500">
             <div className="flex items-center gap-2 overflow-hidden">
               <span className="truncate">{date}</span>
               {status === 'DRAFT' && (
                 <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded leading-none">DRAFT</span>
-              )}
-              {status === 'UPCOMING' && (
-                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded leading-none">UPCOMING</span>
               )}
             </div>
             {location?.venue && <span className="truncate ml-2">{location.venue}</span>}

@@ -140,12 +140,19 @@ export default function EventDetail() {
   }
 
   const categoryLabel = getCategoryLabel(event.category);
-  const startDate = event.startDate
-    ? new Date(event.startDate).toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' })
+  const startDateObj = event.startDate ? new Date(event.startDate) : null;
+  const endDateObj = event.endDate ? new Date(event.endDate) : null;
+
+  const startDate = startDateObj
+    ? startDateObj.toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' })
     : '—';
-  const endDate = event.endDate
-    ? new Date(event.endDate).toLocaleString('en-IN', { timeStyle: 'short' })
+  
+  const endDate = endDateObj
+    ? (startDateObj && startDateObj.toDateString() === endDateObj.toDateString()
+        ? endDateObj.toLocaleString('en-IN', { timeStyle: 'short' })
+        : endDateObj.toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' }))
     : '—';
+
   const organizerName = event.organizer?.name || (typeof event.organizer === 'object' ? event.organizer?.email : '—');
   const statusLabel = event.status ? EVENT_STATUS[event.status] || event.status : null;
   const bannerUrl =
@@ -154,12 +161,30 @@ export default function EventDetail() {
   // Registration Logic checks
   const now = new Date();
   const isPublished = event.status === EVENT_STATUS.PUBLISHED;
+
   const isRegistrationOpen =
     isPublished &&
     (!event.registrationStartDate || now >= new Date(event.registrationStartDate)) &&
     (!event.registrationEndDate || now <= new Date(event.registrationEndDate));
 
   const hasSeats = event.availableSeats == null || event.availableSeats > 0;
+
+  const registrationButtonText = (() => {
+    if (!isPublished) return 'Not Published';
+    if (event.registrationStartDate && now < new Date(event.registrationStartDate)) {
+      const startDate = new Date(event.registrationStartDate).toLocaleString('en-IN', { 
+        day: 'numeric', 
+        month: 'short', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      return `Registration starts on ${startDate}`;
+    }
+    if (event.registrationEndDate && now > new Date(event.registrationEndDate)) return 'Registration Closed';
+    if (!hasSeats) return 'Full';
+    return 'Register Now';
+  })();
 
   return (
     <div className="container-app py-10 relative">
@@ -282,13 +307,7 @@ export default function EventDetail() {
                 disabled={!isRegistrationOpen || !hasSeats}
                 className={!isRegistrationOpen || !hasSeats ? 'opacity-50 cursor-not-allowed' : ''}
               >
-                {!isPublished
-                  ? 'Not Published'
-                  : !isRegistrationOpen
-                    ? 'Registration Closed'
-                    : !hasSeats
-                      ? 'Full'
-                      : 'Register Now'}
+                {registrationButtonText}
               </Button>
             )}
 
