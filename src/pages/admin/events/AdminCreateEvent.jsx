@@ -93,6 +93,8 @@ export default function AdminCreateEvent() {
             const now = new Date();
             const start = new Date(formData.startDate);
             const end = new Date(formData.endDate);
+            const regStart = formData.registrationStartDate ? new Date(formData.registrationStartDate) : null;
+            const regEnd = formData.registrationEndDate ? new Date(formData.registrationEndDate) : null;
 
             if (start < now) {
                 setError('Event start date cannot be in the past');
@@ -101,37 +103,41 @@ export default function AdminCreateEvent() {
             }
 
             if (end <= start) {
-                setError('End date must be after start date');
+                setError('Event end date must be after the start date');
                 setLoading(false);
                 return;
             }
 
-            if (formData.registrationStartDate) {
-                const regStart = new Date(formData.registrationStartDate);
+            if (regStart) {
                 if (regStart < now) {
                     setError('Registration start date cannot be in the past');
                     setLoading(false);
                     return;
                 }
-                if (regStart > start) {
-                    setError('Registration must start before the event starts');
+                if (regStart >= start) {
+                    setError('Registration must start before the event start date');
                     setLoading(false);
                     return;
                 }
             }
 
-            if (formData.registrationEndDate) {
-                const regEnd = new Date(formData.registrationEndDate);
+            if (regEnd) {
                 if (regEnd < now) {
                     setError('Registration end date cannot be in the past');
                     setLoading(false);
                     return;
                 }
                 if (regEnd > start) {
-                    setError('Registration must end before the event starts');
+                    setError('Registration window must end before the event starts');
                     setLoading(false);
                     return;
                 }
+            }
+
+            if (regStart && regEnd && regEnd <= regStart) {
+                setError('Registration end must be after registration start');
+                setLoading(false);
+                return;
             }
             if (Number(formData.price) < 0) {
                 setError('Price cannot be negative');

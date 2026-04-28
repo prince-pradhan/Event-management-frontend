@@ -140,12 +140,28 @@ export default function EventDetail() {
   }
 
   const categoryLabel = getCategoryLabel(event.category);
-  const startDate = event.startDate
-    ? new Date(event.startDate).toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' })
-    : '—';
-  const endDate = event.endDate
-    ? new Date(event.endDate).toLocaleString('en-IN', { timeStyle: 'short' })
-    : '—';
+
+  const formatEventDateRange = (startISO, endISO) => {
+    if (!startISO) return '—';
+    const start = new Date(startISO);
+    const end = endISO ? new Date(endISO) : null;
+    const dateOpts = { dateStyle: 'long' };
+    const timeOpts = { timeStyle: 'short' };
+    const fullOpts = { dateStyle: 'long', timeStyle: 'short' };
+
+    if (!end) return start.toLocaleString('en-IN', fullOpts);
+
+    const sameDay =
+      start.getFullYear() === end.getFullYear() &&
+      start.getMonth() === end.getMonth() &&
+      start.getDate() === end.getDate();
+
+    if (sameDay) {
+      return `${start.toLocaleDateString('en-IN', dateOpts)}, ${start.toLocaleTimeString('en-IN', timeOpts)} – ${end.toLocaleTimeString('en-IN', timeOpts)}`;
+    }
+    return `${start.toLocaleString('en-IN', fullOpts)} – ${end.toLocaleString('en-IN', fullOpts)}`;
+  };
+  const eventDateLabel = formatEventDateRange(event.startDate, event.endDate);
   const organizerName = event.organizer?.name || (typeof event.organizer === 'object' ? event.organizer?.email : '—');
   const statusLabel = event.status ? EVENT_STATUS[event.status] || event.status : null;
   const bannerUrl =
@@ -154,10 +170,16 @@ export default function EventDetail() {
   // Registration Logic checks
   const now = new Date();
   const isPublished = event.status === EVENT_STATUS.PUBLISHED;
+  const regStart = event.registrationStartDate ? new Date(event.registrationStartDate) : null;
+  const regEnd = event.registrationEndDate ? new Date(event.registrationEndDate) : null;
+  const registrationNotYetOpen = !!regStart && now < regStart;
   const isRegistrationOpen =
     isPublished &&
-    (!event.registrationStartDate || now >= new Date(event.registrationStartDate)) &&
-    (!event.registrationEndDate || now <= new Date(event.registrationEndDate));
+    (!regStart || now >= regStart) &&
+    (!regEnd || now <= regEnd);
+  const regStartLabel = regStart
+    ? regStart.toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' })
+    : null;
 
   const hasSeats = event.availableSeats == null || event.availableSeats > 0;
 
@@ -245,7 +267,7 @@ export default function EventDetail() {
           </div>
           <h1 className="mt-2 text-3xl sm:text-4xl font-bold text-slate-900">{event.title}</h1>
           <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-600">
-            <span>📅 {startDate} – {endDate}</span>
+            <span>📅 {eventDateLabel}</span>
             {event.location?.venue && <span>📍 {event.location.venue}</span>}
             {event.location?.address && <span>{event.location.address}</span>}
             {event.location?.city && <span>{event.location.city}</span>}
@@ -270,6 +292,13 @@ export default function EventDetail() {
             </div>
           )}
 
+          {isPublished && registrationNotYetOpen && !isRegistered && (
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm font-medium">
+              <span>⏳</span>
+              <span>Registration starts on <strong>{regStartLabel}</strong></span>
+            </div>
+          )}
+
           <div className="mt-8 flex flex-wrap gap-4 items-center">
             {isRegistered ? (
               <Button disabled className="bg-emerald-100 text-emerald-800 cursor-default">
@@ -284,11 +313,13 @@ export default function EventDetail() {
               >
                 {!isPublished
                   ? 'Not Published'
-                  : !isRegistrationOpen
-                    ? 'Registration Closed'
-                    : !hasSeats
-                      ? 'Full'
-                      : 'Register Now'}
+                  : registrationNotYetOpen
+                    ? 'Registration Not Yet Open'
+                    : !isRegistrationOpen
+                      ? 'Registration Closed'
+                      : !hasSeats
+                        ? 'Full'
+                        : 'Register Now'}
               </Button>
             )}
 

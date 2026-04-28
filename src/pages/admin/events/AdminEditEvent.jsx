@@ -144,10 +144,9 @@ export default function AdminEditEvent() {
             const now = new Date();
             const startLocal = new Date(formData.startDate);
             const endLocal = new Date(formData.endDate);
+            const regStart = formData.registrationStartDate ? new Date(formData.registrationStartDate) : null;
+            const regEnd = formData.registrationEndDate ? new Date(formData.registrationEndDate) : null;
 
-            // Only validate past dates if the start date was changed to a NEW value
-            // (Otherwise we might block editing an event that already started)
-            // But usually, we want to prevent moving an event to the past.
             if (startLocal < now) {
                 setError('Event start date cannot be in the past');
                 setSaving(false);
@@ -155,37 +154,41 @@ export default function AdminEditEvent() {
             }
 
             if (endLocal <= startLocal) {
-                setError('End date must be after start date');
+                setError('Event end date must be after the start date');
                 setSaving(false);
                 return;
             }
 
-            if (formData.registrationStartDate) {
-                const regStart = new Date(formData.registrationStartDate);
+            if (regStart) {
                 if (regStart < now) {
                     setError('Registration start date cannot be in the past');
                     setSaving(false);
                     return;
                 }
-                if (regStart > startLocal) {
-                    setError('Registration must start before the event starts');
+                if (regStart >= startLocal) {
+                    setError('Registration must start before the event start date');
                     setSaving(false);
                     return;
                 }
             }
 
-            if (formData.registrationEndDate) {
-                const regEnd = new Date(formData.registrationEndDate);
+            if (regEnd) {
                 if (regEnd < now) {
                     setError('Registration end date cannot be in the past');
                     setSaving(false);
                     return;
                 }
                 if (regEnd > startLocal) {
-                    setError('Registration must end before the event starts');
+                    setError('Registration window must end before the event starts');
                     setSaving(false);
                     return;
                 }
+            }
+
+            if (regStart && regEnd && regEnd <= regStart) {
+                setError('Registration end must be after registration start');
+                setSaving(false);
+                return;
             }
             if (Number(formData.price) < 0) {
                 setError('Price cannot be negative');
