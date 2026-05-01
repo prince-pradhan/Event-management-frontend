@@ -25,6 +25,7 @@ import AdminLayout from '../components/layout/AdminLayout';
 import AdminHome from '../pages/admin/AdminHome';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminEvents from '../pages/admin/events/AdminEvents';
+import AdminEventDetail from '../pages/admin/events/AdminEventDetail';
 import AdminCreateEvent from '../pages/admin/events/AdminCreateEvent';
 import AdminEditEvent from '../pages/admin/events/AdminEditEvent';
 import AdminEventReviews from '../pages/admin/events/AdminEventReviews';
@@ -109,10 +110,10 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Navigate to="/admin/dashboard" replace /> },
-      { path: 'dashboard', element: <AdminHome /> },
-      { path: 'management', element: <AdminDashboard /> },
-      { path: 'events', element: <AdminEvents /> },
+      { path: 'dashboard', element: <AdminDashboard /> },
       { path: 'events/new', element: <AdminCreateEvent /> },
+      { path: 'events', element: <AdminEvents /> },
+      { path: 'events/:id', element: <AdminEventDetail /> },
       { path: 'events/:id/edit', element: <AdminEditEvent /> },
       { path: 'events/:id/reviews', element: <AdminEventReviews /> },
       { path: 'events/:eventId/registrations', element: <EventRegistrations /> },
@@ -131,9 +132,10 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Navigate to="/institution-admin/dashboard" replace /> },
-      { path: 'dashboard', element: <AdminHome /> },
-      { path: 'events', element: <AdminEvents /> },
+      { path: 'dashboard', element: <AdminDashboard showUsersCard={false} institutionOnly /> },
       { path: 'events/new', element: <AdminCreateEvent /> },
+      { path: 'events', element: <AdminEvents /> },
+      { path: 'events/:id', element: <AdminEventDetail /> },
       { path: 'events/:id/edit', element: <AdminEditEvent /> },
       { path: 'events/:id/reviews', element: <AdminEventReviews /> },
       { path: 'events/:eventId/registrations', element: <EventRegistrations /> },

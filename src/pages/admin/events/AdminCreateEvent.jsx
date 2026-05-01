@@ -29,6 +29,7 @@ export default function AdminCreateEvent() {
         registrationEndDate: '',
         // Capacity & Price
         totalSeats: '',
+        isFree: true,
         price: 0,
         status: EVENT_STATUS.PUBLISHED,
         // Media
@@ -56,11 +57,15 @@ export default function AdminCreateEvent() {
     }, []);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ 
+            ...prev, 
+            [name]: type === 'checkbox' ? checked : value 
+        }));
     };
 
-    const addRegField = () => {
+    const addRegField = (e) => {
+        e.preventDefault(); // Prevent form submission
         if (!newField.label || !newField.name) return;
         setRegFields(prev => [...prev, newField]);
         setNewField({ label: '', name: '', fieldType: 'text', required: false });
@@ -85,10 +90,52 @@ export default function AdminCreateEvent() {
                 setLoading(false);
                 return;
             }
+            const now = new Date();
             const start = new Date(formData.startDate);
             const end = new Date(formData.endDate);
+            const regStart = formData.registrationStartDate ? new Date(formData.registrationStartDate) : null;
+            const regEnd = formData.registrationEndDate ? new Date(formData.registrationEndDate) : null;
+
+            if (start < now) {
+                setError('Event start date cannot be in the past');
+                setLoading(false);
+                return;
+            }
+
             if (end <= start) {
-                setError('End date must be after start date');
+                setError('Event end date must be after the start date');
+                setLoading(false);
+                return;
+            }
+
+            if (regStart) {
+                if (regStart < now) {
+                    setError('Registration start date cannot be in the past');
+                    setLoading(false);
+                    return;
+                }
+                if (regStart >= start) {
+                    setError('Registration must start before the event start date');
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            if (regEnd) {
+                if (regEnd < now) {
+                    setError('Registration end date cannot be in the past');
+                    setLoading(false);
+                    return;
+                }
+                if (regEnd > start) {
+                    setError('Registration window must end before the event starts');
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            if (regStart && regEnd && regEnd <= regStart) {
+                setError('Registration end must be after registration start');
                 setLoading(false);
                 return;
             }
@@ -120,7 +167,8 @@ export default function AdminCreateEvent() {
                 },
                 registrationFields: regFields,
                 totalSeats: Number(formData.totalSeats),
-                price: Number(formData.price),
+                isFree: formData.isFree,
+                price: formData.isFree ? 0 : Number(formData.price),
             };
 
             if (bannerFile) {
@@ -366,28 +414,42 @@ export default function AdminCreateEvent() {
                                 </select>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Price (₹)</label>
+                            <div className="space-y-6">
+                                <label className="flex items-center gap-3 cursor-pointer group">
                                     <input
-                                        type="number"
-                                        name="price"
-                                        min="0"
-                                        value={formData.price}
+                                        type="checkbox"
+                                        name="isFree"
+                                        checked={formData.isFree}
                                         onChange={handleChange}
-                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
+                                        className="w-6 h-6 rounded-lg border-2 border-slate-300 text-primary-600 focus:ring-primary-500 transition-all cursor-pointer"
                                     />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Max Seats</label>
-                                    <input
-                                        type="number"
-                                        name="totalSeats"
-                                        min="0"
-                                        value={formData.totalSeats}
-                                        onChange={handleChange}
-                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
-                                    />
+                                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest group-hover:text-slate-700 transition-colors">Free Entry</span>
+                                </label>
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Price ($)</label>
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            min="0"
+                                            disabled={formData.isFree}
+                                            value={formData.isFree ? 0 : formData.price}
+                                            onChange={handleChange}
+                                            className={`w-full rounded-2xl border-2 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm transition-all ${formData.isFree ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-300'}`}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Max Seats</label>
+                                        <input
+                                            type="number"
+                                            name="totalSeats"
+                                            min="0"
+                                            value={formData.totalSeats}
+                                            onChange={handleChange}
+                                            className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 

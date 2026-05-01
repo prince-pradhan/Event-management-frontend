@@ -1,6 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { 
   Ticket, 
   Calendar, 
@@ -8,17 +10,27 @@ import {
   Clock, 
   Search, 
   Filter,
-  ArrowUpRight
+  ArrowUpRight,
+  Download,
+  X,
+  Loader2
 } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import Modal from '../../components/common/Modal';
 import { ROUTES } from '../../utils/constants';
 import { registrationsApi } from '../../api/endpoints';
 
 export default function MyRegistrations() {
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
   const [filter, setFilter] = useState('all');
+  
+  // Ticket Modal State
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [selectedReg, setSelectedReg] = useState(null);
+  const ticketRef = useRef(null);
 
   useEffect(() => {
     const fetchRegistrations = async () => {
@@ -71,6 +83,44 @@ export default function MyRegistrations() {
       hour: '2-digit',
       minute: '2-digit'
     }) : '—';
+  };
+
+  const handleViewTicket = (reg) => {
+    setSelectedReg(reg);
+    setShowTicketModal(true);
+  };
+
+  const downloadTicket = async () => {
+    if (!selectedReg || !ticketRef.current) return;
+    
+    try {
+      setDownloading(true);
+      const canvas = await html2canvas(ticketRef.current, {
+        scale: 2,
+        backgroundColor: '#f8fafc',
+        logging: false,
+        useCORS: true
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a5'
+      });
+      
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`ticket-${selectedReg.event?.title}-${selectedReg._id.slice(-6)}.pdf`);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      alert('Failed to download ticket. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -223,7 +273,10 @@ export default function MyRegistrations() {
                     </button>
                   </Link>
                   {reg.status !== 'CANCELLED' && reg.event?.status !== 'CANCELLED' && new Date(reg.event?.startDate) >= new Date() && (
-                    <button className="w-full whitespace-nowrap px-4 py-2 bg-white text-slate-600 border border-slate-200 text-sm font-bold rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+                    <button 
+                      onClick={() => handleViewTicket(reg)}
+                      className="w-full whitespace-nowrap px-4 py-2 bg-white text-slate-600 border border-slate-200 text-sm font-bold rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+                    >
                       <Ticket className="w-4 h-4" />
                       Ticket
                     </button>
@@ -234,6 +287,89 @@ export default function MyRegistrations() {
           ))
         )}
       </div>
+
+      {/* Ticket Modal */}
+      <Modal
+        isOpen={showTicketModal}
+        onClose={() => setShowTicketModal(false)}
+        title="Event Ticket"
+      >
+        {selectedReg && (
+          <div className="space-y-6">
+            <div 
+              ref={ticketRef}
+              className="bg-slate-50 p-6 rounded-2xl border-2 border-dashed border-slate-200 relative overflow-hidden"
+            >
+              {/* Ticket Top */}
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Event Ticket</p>
+                  <h3 className="text-xl font-bold text-slate-900 leading-tight">{selectedReg.event?.title}</h3>
+                </div>
+                <div className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-1 rounded uppercase">
+                  Confirmed
+                </div>
+              </div>
+
+              {/* Ticket Body */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Date</p>
+                  <p className="text-sm font-bold text-slate-700">{formatDate(selectedReg.event?.startDate)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Time</p>
+                  <p className="text-sm font-bold text-slate-700">{formatTime(selectedReg.event?.startDate)}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Venue</p>
+                  <p className="text-sm font-bold text-slate-700">{selectedReg.event?.location?.venue || 'TBD'}</p>
+                </div>
+              </div>
+
+              {/* QR Code Placeholder */}
+              <div className="flex flex-col items-center justify-center py-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                <div className="w-32 h-32 bg-slate-50 rounded-lg flex items-center justify-center border border-slate-100 mb-2">
+                  <Ticket className="w-12 h-12 text-slate-200" />
+                </div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">#{selectedReg._id.slice(-12).toUpperCase()}</p>
+              </div>
+
+              {/* Decorative Circles */}
+              <div className="absolute top-1/2 -left-3 w-6 h-6 bg-white rounded-full border-r border-slate-200 -translate-y-1/2"></div>
+              <div className="absolute top-1/2 -right-3 w-6 h-6 bg-white rounded-full border-l border-slate-200 -translate-y-1/2"></div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button 
+                variant="secondary" 
+                className="flex-1 flex items-center justify-center gap-2"
+                onClick={() => setShowTicketModal(false)}
+                disabled={downloading}
+              >
+                Close
+              </Button>
+              <Button 
+                className="flex-1 flex items-center justify-center gap-2"
+                onClick={downloadTicket}
+                disabled={downloading}
+              >
+                {downloading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    Download PDF
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

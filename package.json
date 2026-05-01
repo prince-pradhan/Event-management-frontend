@@ -9,12 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@paypal/react-paypal-js": "^9.1.0",
     "@react-oauth/google": "^0.13.4",
     "axios": "^1.6.7",
+    "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.34.5",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.575.0",
     "react": "^18.2.0",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
     "socket.io-client": "^4.8.3"

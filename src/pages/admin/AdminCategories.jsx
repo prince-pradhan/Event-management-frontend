@@ -140,12 +140,6 @@ export default function AdminCategories() {
                                                 >
                                                     Edit
                                                 </button>
-                                                <button
-                                                    onClick={() => handleDelete(category._id)}
-                                                    className="text-xs font-bold text-red-600 hover:text-red-700 uppercase tracking-tight"
-                                                >
-                                                    Delete
-                                                </button>
                                             </div>
                                         </td>
                                     </tr>

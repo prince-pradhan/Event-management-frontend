@@ -31,6 +31,7 @@ export default function AdminEditEvent() {
         registrationEndDate: '',
         // Capacity & Price
         totalSeats: '',
+        isFree: true,
         price: 0,
         status: '',
         // Media
@@ -39,6 +40,7 @@ export default function AdminEditEvent() {
 
     const [initialSeats, setInitialSeats] = useState({ total: 0, available: 0 });
     const [regFields, setRegFields] = useState([]);
+    const [newField, setNewField] = useState({ label: '', name: '', fieldType: 'text', required: false });
     const [bannerFile, setBannerFile] = useState(null);
     const [bannerPreview, setBannerPreview] = useState('');
 
@@ -70,21 +72,22 @@ export default function AdminEditEvent() {
                     };
 
                     setFormData({
-                        title: event.title,
-                        description: event.description || '',
-                        category: typeof event.category === 'object' ? event.category._id : event.category,
-                        venue: event.location?.venue || '',
-                        address: event.location?.address || '',
-                        city: event.location?.city || '',
-                        startDate: toLocalISO(event.startDate),
-                        endDate: toLocalISO(event.endDate),
-                        registrationStartDate: toLocalISO(event.registrationStartDate),
-                        registrationEndDate: toLocalISO(event.registrationEndDate),
-                        totalSeats: event.totalSeats || '',
-                        price: event.price || 0,
-                        status: event.status || EVENT_STATUS.PUBLISHED,
-                        bannerImage: event.bannerImage || '',
-                    });
+                            title: event.title,
+                            description: event.description || '',
+                            category: typeof event.category === 'object' ? event.category._id : event.category,
+                            venue: event.location?.venue || '',
+                            address: event.location?.address || '',
+                            city: event.location?.city || '',
+                            startDate: toLocalISO(event.startDate),
+                            endDate: toLocalISO(event.endDate),
+                            registrationStartDate: toLocalISO(event.registrationStartDate),
+                            registrationEndDate: toLocalISO(event.registrationEndDate),
+                            totalSeats: event.totalSeats || '',
+                            isFree: event.isFree !== undefined ? event.isFree : true,
+                            price: event.price || 0,
+                            status: event.status || EVENT_STATUS.PUBLISHED,
+                            bannerImage: event.bannerImage || '',
+                        });
 
                     setInitialSeats({
                         total: event.totalSeats || 0,
@@ -107,8 +110,11 @@ export default function AdminEditEvent() {
     }, [id]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ 
+            ...prev, 
+            [name]: type === 'checkbox' ? checked : value 
+        }));
     };
 
     const addRegField = () => {
@@ -135,10 +141,52 @@ export default function AdminEditEvent() {
                 setSaving(false);
                 return;
             }
+            const now = new Date();
             const startLocal = new Date(formData.startDate);
             const endLocal = new Date(formData.endDate);
+            const regStart = formData.registrationStartDate ? new Date(formData.registrationStartDate) : null;
+            const regEnd = formData.registrationEndDate ? new Date(formData.registrationEndDate) : null;
+
+            if (startLocal < now) {
+                setError('Event start date cannot be in the past');
+                setSaving(false);
+                return;
+            }
+
             if (endLocal <= startLocal) {
-                setError('End date must be after start date');
+                setError('Event end date must be after the start date');
+                setSaving(false);
+                return;
+            }
+
+            if (regStart) {
+                if (regStart < now) {
+                    setError('Registration start date cannot be in the past');
+                    setSaving(false);
+                    return;
+                }
+                if (regStart >= startLocal) {
+                    setError('Registration must start before the event start date');
+                    setSaving(false);
+                    return;
+                }
+            }
+
+            if (regEnd) {
+                if (regEnd < now) {
+                    setError('Registration end date cannot be in the past');
+                    setSaving(false);
+                    return;
+                }
+                if (regEnd > startLocal) {
+                    setError('Registration window must end before the event starts');
+                    setSaving(false);
+                    return;
+                }
+            }
+
+            if (regStart && regEnd && regEnd <= regStart) {
+                setError('Registration end must be after registration start');
                 setSaving(false);
                 return;
             }
@@ -171,10 +219,11 @@ export default function AdminEditEvent() {
                     address: formData.address,
                     city: formData.city,
                 },
-                // registrationFields: regFields, // Backend rejects updates to this anyway
+                registrationFields: regFields,
                 totalSeats: newTotal,
                 availableSeats: newAvailable,
-                price: Number(formData.price),
+                isFree: formData.isFree,
+                price: formData.isFree ? 0 : Number(formData.price),
             };
             delete payload.bannerImage; // banner updates go via dedicated upload endpoint
 
@@ -455,28 +504,42 @@ export default function AdminEditEvent() {
                                 </select>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Price (₹)</label>
+                            <div className="space-y-6">
+                                <label className="flex items-center gap-3 cursor-pointer group">
                                     <input
-                                        type="number"
-                                        name="price"
-                                    min="0"
-                                        value={formData.price}
+                                        type="checkbox"
+                                        name="isFree"
+                                        checked={formData.isFree}
                                         onChange={handleChange}
-                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
+                                        className="w-6 h-6 rounded-lg border-2 border-slate-300 text-primary-600 focus:ring-primary-500 transition-all cursor-pointer"
                                     />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Max Seats</label>
-                                    <input
-                                        type="number"
-                                        name="totalSeats"
-                                    min="0"
-                                        value={formData.totalSeats}
-                                        onChange={handleChange}
-                                        className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
-                                    />
+                                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest group-hover:text-slate-700 transition-colors">Free Entry</span>
+                                </label>
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Price ($)</label>
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            min="0"
+                                            disabled={formData.isFree}
+                                            value={formData.isFree ? 0 : formData.price}
+                                            onChange={handleChange}
+                                            className={`w-full rounded-2xl border-2 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm transition-all ${formData.isFree ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed' : 'bg-white border-slate-300'}`}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Max Seats</label>
+                                        <input
+                                            type="number"
+                                            name="totalSeats"
+                                            min="0"
+                                            value={formData.totalSeats}
+                                            onChange={handleChange}
+                                            className="w-full rounded-2xl border-2 border-slate-300 px-5 py-4 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/5 font-black text-slate-900 shadow-sm bg-white"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -545,6 +608,87 @@ export default function AdminEditEvent() {
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Blueprint Locked</p>
                         </div>
                     </section> */}
+
+                    <section className="bg-white rounded-3xl shadow-soft-xl border border-slate-100/50 p-7">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl text-xl shadow-sm border border-amber-100/50">
+                                📋
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Extra Fields</h2>
+                                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Attendee Data Requirements</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3 mb-8">
+                            {regFields.length === 0 && (
+                                <div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">No custom fields defined</p>
+                                </div>
+                            )}
+                            {regFields.map((field, idx) => (
+                                <div key={idx} className="flex items-center gap-3 bg-white border border-slate-100 p-4 rounded-2xl shadow-sm group hover:border-primary-200 transition-all">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-black text-[11px] text-slate-800 uppercase tracking-widest truncate">{field.label}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 mt-0.5 lowercase tracking-wider">{field.fieldType} • {field.required ? 'Required' : 'Optional'}</p>
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setRegFields(prev => prev.filter((_, i) => i !== idx))}
+                                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-4">
+                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add Custom Field</h3>
+                            <div className="space-y-3">
+                                <input
+                                    type="text"
+                                    placeholder="Label (e.g. T-Shirt Size)"
+                                    value={newField.label}
+                                    onChange={(e) => setNewField({ ...newField, label: e.target.value, name: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
+                                    className="w-full rounded-xl border-2 border-slate-200 px-4 py-2 text-xs font-bold shadow-sm focus:border-primary-500 focus:ring-0"
+                                />
+                                <div className="flex gap-2">
+                                    <select
+                                        value={newField.fieldType}
+                                        onChange={(e) => setNewField({ ...newField, fieldType: e.target.value })}
+                                        className="flex-1 rounded-xl border-2 border-slate-200 px-4 py-2 text-xs font-bold shadow-sm focus:border-primary-500 focus:ring-0 bg-white"
+                                    >
+                                        <option value="text">Text</option>
+                                        <option value="number">Number</option>
+                                        <option value="checkbox">Checkbox</option>
+                                        <option value="email">Email</option>
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            if (!newField.label) return;
+                                            setRegFields(prev => [...prev, newField]);
+                                            setNewField({ label: '', name: '', fieldType: 'text', required: false });
+                                        }}
+                                        className="bg-primary-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary-200 hover:bg-primary-700 transition-all"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={newField.required}
+                                        onChange={(e) => setNewField({ ...newField, required: e.target.checked })}
+                                        className="w-4 h-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                                    />
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Mark as Required</span>
+                                </label>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </form>
         </div>
