@@ -3,6 +3,7 @@ import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { ToastProvider } from "./context/ToastContext";
+import { ConfirmProvider } from "./context/ConfirmContext";
 import AppRouter from "./routes";
 import "./styles/index.css";
 
@@ -18,11 +19,13 @@ export default function App() {
         currency: "USD"
       }}>
         <ToastProvider>
-          <AuthProvider>
-            <NotificationProvider>
-              <AppRouter />
-            </NotificationProvider>
-          </AuthProvider>
+          <ConfirmProvider>
+            <AuthProvider>
+              <NotificationProvider>
+                <AppRouter />
+              </NotificationProvider>
+            </AuthProvider>
+          </ConfirmProvider>
         </ToastProvider>
       </PayPalScriptProvider>
     </GoogleOAuthProvider>

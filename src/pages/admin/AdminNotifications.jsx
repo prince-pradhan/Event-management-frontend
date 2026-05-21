@@ -2,14 +2,17 @@ import { useEffect, useMemo, useState } from 'react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import { notificationApi, eventsApi, authApi } from '../../api/endpoints';
 import { NOTIFICATION_CATEGORY, NOTIFICATION_SCOPE, USER_ROLE } from '../../utils/constants';
 import { formatDistanceToNow } from 'date-fns';
+import { Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AdminNotifications() {
   const { user, isInstitutionAdmin, isSystemAdmin } = useAuth();
   const { addToast } = useToast();
+  const confirm = useConfirm();
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [events, setEvents] = useState([]);
@@ -30,6 +33,8 @@ export default function AdminNotifications() {
       externalLink: ''
     }
   });
+  // When set, the form edits this notification instead of creating a new one.
+  const [editingId, setEditingId] = useState(null);
 
   const categories = useMemo(() => [
     { value: NOTIFICATION_CATEGORY.NEW_EVENT, label: 'New Event' },
@@ -79,6 +84,58 @@ export default function AdminNotifications() {
     }
   };
 
+  const resetForm = () => {
+    setForm({
+      title: '',
+      message: '',
+      category: NOTIFICATION_CATEGORY.SYSTEM,
+      scope: NOTIFICATION_SCOPE.BROADCAST,
+      recipientId: '',
+      userIds: [],
+      data: { eventId: '', action: '', externalLink: '' },
+    });
+    setEditingId(null);
+  };
+
+  const startEdit = (n) => {
+    setEditingId(n._id);
+    setForm({
+      title: n.title || '',
+      message: n.message || '',
+      category: n.category || NOTIFICATION_CATEGORY.SYSTEM,
+      scope: n.scope || NOTIFICATION_SCOPE.BROADCAST,
+      recipientId: n.recipient?._id || n.recipient || '',
+      userIds: Array.isArray(n.allowedUsers) ? n.allowedUsers.map(u => u._id || u) : [],
+      data: {
+        eventId: n.data?.eventId?._id || n.data?.eventId || '',
+        action: n.data?.action || '',
+        externalLink: n.data?.externalLink || '',
+      },
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id) => {
+    const ok = await confirm({
+      title: 'Delete notification?',
+      message: 'This will permanently delete the notification and remove it for all recipients.',
+      confirmLabel: 'Delete',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      const res = await notificationApi.delete(id);
+      if (res.data?.success) {
+        addToast({ type: 'success', title: 'Deleted', message: 'Notification removed.' });
+        if (editingId === id) resetForm();
+        const nextPage = list.length === 1 && page > 1 ? page - 1 : page;
+        await fetchList(nextPage);
+      }
+    } catch (error) {
+      addToast({ type: 'error', title: 'Failed', message: error?.response?.data?.message || 'Could not delete notification.' });
+    }
+  };
+
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -124,27 +181,33 @@ export default function AdminNotifications() {
       if (form.scope === NOTIFICATION_SCOPE.TARGETED) payload.recipientId = form.recipientId;
       if (form.scope === NOTIFICATION_SCOPE.PERSONALIZED) payload.userIds = form.userIds;
 
-      const res = await notificationApi.create(payload);
+      const res = editingId
+        ? await notificationApi.update(editingId, payload)
+        : await notificationApi.create(payload);
       if (res.data?.success) {
-        addToast({ type: 'success', title: 'Notification sent', message: 'Your notification has been created and dispatched.' });
-        setForm({
-          title: '',
-          message: '',
-          category: NOTIFICATION_CATEGORY.SYSTEM,
-          scope: NOTIFICATION_SCOPE.BROADCAST,
-          recipientId: '',
-          userIds: [],
-          data: { eventId: '', action: '', externalLink: '' }
+        addToast({
+          type: 'success',
+          title: editingId ? 'Notification updated' : 'Notification sent',
+          message: editingId
+            ? 'Your changes have been saved.'
+            : 'Your notification has been created and dispatched.',
         });
+        const refreshPage = editingId ? page : 1;
+        resetForm();
         // Refresh list separately; do not fail the whole flow if this errors
         try {
-          await fetchList(1);
+          await fetchList(refreshPage);
         } catch {
           // no-op
         }
       }
     } catch (error) {
-      addToast({ type: 'error', title: 'Failed', message: error?.response?.data?.message || 'Could not create notification.' });
+      addToast({
+        type: 'error',
+        title: 'Failed',
+        message: error?.response?.data?.message
+          || (editingId ? 'Could not update notification.' : 'Could not create notification.'),
+      });
     } finally {
       setLoading(false);
     }
@@ -161,6 +224,14 @@ export default function AdminNotifications() {
 
       <Card>
         <form onSubmit={onSubmit} className="space-y-6">
+          {editingId && (
+            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm font-semibold">
+              <span>✏️ Editing an existing notification — only its content is updated, not the original recipients.</span>
+              <button type="button" onClick={resetForm} className="text-xs font-bold underline whitespace-nowrap">
+                Cancel
+              </button>
+            </div>
+          )}
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1.5">Title</label>
@@ -286,13 +357,18 @@ export default function AdminNotifications() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-end gap-3">
+            {editingId && (
+              <Button type="button" variant="secondary" onClick={resetForm} disabled={loading}>
+                Cancel Edit
+              </Button>
+            )}
             <Button
               type="submit"
               disabled={!canSubmit() || loading}
               className="px-6"
             >
-              {loading ? 'Sending...' : 'Send Notification'}
+              {loading ? 'Saving...' : editingId ? 'Update Notification' : 'Send Notification'}
             </Button>
           </div>
         </form>
@@ -344,6 +420,22 @@ export default function AdminNotifications() {
                       <span className="text-[10px] font-bold text-primary-600">Event linked</span>
                     )}
                   </div>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => startEdit(n)}
+                    title="Edit notification"
+                    className={`p-2 rounded-xl transition-all ${editingId === n._id ? 'text-primary-600 bg-primary-50' : 'text-slate-400 hover:text-primary-600 hover:bg-primary-50'}`}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(n._id)}
+                    title="Delete notification"
+                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             ))

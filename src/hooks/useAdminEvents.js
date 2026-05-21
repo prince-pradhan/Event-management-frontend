@@ -1,7 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { eventsApi } from '../api/endpoints';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 
 export const useAdminEvents = (institutionId) => {
+    const { addToast } = useToast();
+    const confirm = useConfirm();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -31,19 +35,24 @@ export const useAdminEvents = (institutionId) => {
     }, [fetchEvents]);
 
     const deleteEvent = async (eventId) => {
-        if (!window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
-            return false;
-        }
+        const ok = await confirm({
+            title: 'Delete event?',
+            message: 'This will permanently delete the event. This action cannot be undone.',
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!ok) return false;
 
         try {
             const res = await eventsApi.delete(eventId);
             if (res.data.success) {
                 setEvents(prev => prev.filter(e => e._id !== eventId));
+                addToast({ type: 'success', title: 'Event deleted', message: 'The event has been removed.' });
                 return true;
             }
         } catch (err) {
             console.error('Failed to delete event', err);
-            alert('Failed to delete event');
+            addToast({ type: 'error', title: 'Delete failed', message: err.response?.data?.message || 'Could not delete the event.' });
         }
         return false;
     };
@@ -59,7 +68,7 @@ export const useAdminEvents = (institutionId) => {
             }
         } catch (err) {
             console.error('Failed to update status', err);
-            alert('Failed to update status: ' + (err.response?.data?.message || err.message));
+            addToast({ type: 'error', title: 'Update failed', message: err.response?.data?.message || err.message || 'Could not update event status.' });
         }
         return false;
     };

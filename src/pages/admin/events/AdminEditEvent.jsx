@@ -117,16 +117,6 @@ export default function AdminEditEvent() {
         }));
     };
 
-    const addRegField = () => {
-        // Disabled per backend constraints
-        alert('Adding new fields to an existing event is not supported by the backend.');
-    };
-
-    const removeRegField = (index) => {
-        // Disabled per backend constraints
-        alert('Removing fields from an existing event is not supported by the backend.');
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
@@ -257,7 +247,7 @@ export default function AdminEditEvent() {
                     <p className="mt-2 text-slate-500 font-medium">Refining the details for your upcoming showcase.</p>
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="secondary" onClick={() => navigate(ROUTES.ADMIN_EVENTS)} className="px-6 border-slate-200">Cancel</Button>
+                    <Button variant="secondary" onClick={() => navigate(getAdminPath(ROUTES.ADMIN_EVENTS))} className="px-6 border-slate-200">Cancel</Button>
                     <Button type="submit" form="edit-event-form" disabled={saving} className="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-200 transition-all active:scale-[0.98]">
                         {saving ? 'Saving...' : 'Update Event'}
                     </Button>

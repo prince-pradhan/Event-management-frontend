@@ -272,11 +272,11 @@ export default function AdminEvents() {
                         <div className="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden">
                           <div
                             className="bg-primary-500 h-full rounded-full transition-all duration-500"
-                            style={{ width: `${Math.min(100, (1 - (event.availableSeats / event.totalSeats)) * 100)}%` }}
+                            style={{ width: `${event.totalSeats > 0 ? Math.min(100, Math.max(0, (event.totalSeats - (event.availableSeats || 0)) / event.totalSeats) * 100) : 0}%` }}
                           />
                         </div>
                         <span className="text-[10px] font-black text-slate-600 italic">
-                          {event.totalSeats - event.availableSeats}/{event.totalSeats}
+                          {Math.max(0, (event.totalSeats || 0) - (event.availableSeats || 0))}/{event.totalSeats || 0}
                         </span>
                       </div>
                     </td>

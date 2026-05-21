@@ -50,7 +50,9 @@ export default function AdminEventDetail() {
         }
 
         if (regRes.data?.success) {
-          setAttendeeCount(regRes.data.registrations?.length || 0);
+          // Count only confirmed attendees, not pending/cancelled/failed registrations.
+          const regs = regRes.data.registrations || [];
+          setAttendeeCount(regs.filter((r) => r.status === 'REGISTERED').length);
         }
       } catch (err) {
         console.error('Error fetching event details:', err);
@@ -90,14 +92,21 @@ export default function AdminEventDetail() {
     );
   }
 
-  const startDate = new Date(event.startDate).toLocaleDateString('en-IN', { 
-    weekday: 'long', 
-    day: 'numeric', 
-    month: 'long', 
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const formatDateTime = (d) =>
+    d
+      ? new Date(d).toLocaleString('en-IN', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : '—';
+  const startDate = formatDateTime(event.startDate);
+  const endDate = formatDateTime(event.endDate);
+  const bannerUrl =
+    typeof event.bannerImage === 'string' ? event.bannerImage : event.bannerImage?.url;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -143,10 +152,10 @@ export default function AdminEventDetail() {
         <div className="lg:col-span-2 space-y-8">
           {/* Banner */}
           <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl bg-slate-100">
-            {event.bannerImage ? (
-              <img 
-                src={event.bannerImage} 
-                alt={event.title} 
+            {bannerUrl ? (
+              <img
+                src={bannerUrl}
+                alt={event.title}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -226,8 +235,10 @@ export default function AdminEventDetail() {
                   <Calendar className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Date & Time</p>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Starts</p>
                   <p className="text-sm font-bold text-slate-700 mt-0.5">{startDate}</p>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-3">Ends</p>
+                  <p className="text-sm font-bold text-slate-700 mt-0.5">{endDate}</p>
                 </div>
               </div>
 

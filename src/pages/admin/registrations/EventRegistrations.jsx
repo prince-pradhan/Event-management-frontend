@@ -5,14 +5,33 @@ import Button from '../../../components/common/Button';
 import { ROUTES } from '../../../utils/constants';
 import { registrationsApi, eventsApi } from '../../../api/endpoints';
 import { useAuth } from '../../../context/AuthContext';
+import { useToast } from '../../../context/ToastContext';
 
 function formatDate(dateStr) {
     return dateStr ? new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 }
 
+// Maps a registration's status + paymentStatus to a display badge.
+function getRegStatus(reg) {
+    if (reg.status === 'CANCELLED') {
+        return { label: 'Cancelled', wrap: 'bg-red-50 text-red-600 border-red-100', dot: 'bg-red-500' };
+    }
+    if (reg.status === 'FAILED') {
+        return { label: 'Payment Failed', wrap: 'bg-red-50 text-red-600 border-red-100', dot: 'bg-red-500' };
+    }
+    if (reg.status === 'PENDING') {
+        return { label: 'Payment Pending', wrap: 'bg-amber-50 text-amber-600 border-amber-100', dot: 'bg-amber-500' };
+    }
+    if (reg.paymentStatus === 'PAID') {
+        return { label: 'Paid', wrap: 'bg-emerald-50 text-emerald-600 border-emerald-100', dot: 'bg-emerald-500' };
+    }
+    return { label: 'Confirmed', wrap: 'bg-emerald-50 text-emerald-600 border-emerald-100', dot: 'bg-emerald-500' };
+}
+
 export default function EventRegistrations() {
     const { eventId } = useParams();
     const { isSystemAdmin } = useAuth();
+    const { addToast } = useToast();
     const [event, setEvent] = useState(null);
     const [registrations, setRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -48,7 +67,7 @@ export default function EventRegistrations() {
 
     const handleExport = () => {
         if (registrations.length === 0) {
-            alert('No registrations to export.');
+            addToast({ type: 'warning', title: 'Nothing to export', message: 'There are no registrations to export.' });
             return;
         }
 
@@ -62,7 +81,7 @@ export default function EventRegistrations() {
         const dynamicHeaders = Array.from(additionalKeys);
 
         // 2. Define standard headers
-        const baseHeaders = ['Name', 'Email', 'Registration Date', 'Status'];
+        const baseHeaders = ['Name', 'Email', 'Registration Date', 'Status', 'Payment'];
         const allHeaders = [...baseHeaders, ...dynamicHeaders];
 
         // 3. Create CSV rows
@@ -73,7 +92,8 @@ export default function EventRegistrations() {
                     `"${reg.user?.name || 'Unknown'}"`,
                     `"${reg.user?.email || 'N/A'}"`,
                     `"${formatDate(reg.createdAt)}"`,
-                    '"CONFIRMED"'
+                    `"${reg.status || 'REGISTERED'}"`,
+                    `"${reg.paymentStatus || 'NOT_REQUIRED'}"`
                 ];
 
                 // Add dynamic info
@@ -113,6 +133,9 @@ export default function EventRegistrations() {
         );
     }
 
+    const confirmedCount = registrations.filter((r) => r.status === 'REGISTERED').length;
+    const pendingCount = registrations.filter((r) => r.status === 'PENDING').length;
+
     return (
         <div className="max-w-6xl mx-auto space-y-10">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 border-b border-slate-100 pb-10">
@@ -123,13 +146,18 @@ export default function EventRegistrations() {
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">
                         {event?.title || 'Event Registrations'}
                     </h1>
-                    <div className="mt-3 flex items-center gap-3">
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
                         <span className="px-3 py-1 bg-slate-900 text-white text-[10px] font-black rounded-full uppercase tracking-widest shadow-lg shadow-slate-200">
-                            {registrations.length} Attendees
+                            {registrations.length} Total
                         </span>
-                        <p className="text-slate-400 font-medium text-sm">
-                            View and manage all registered participants.
-                        </p>
+                        <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-black rounded-full uppercase tracking-widest">
+                            {confirmedCount} Confirmed
+                        </span>
+                        {pendingCount > 0 && (
+                            <span className="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-black rounded-full uppercase tracking-widest">
+                                {pendingCount} Pending
+                            </span>
+                        )}
                     </div>
                 </div>
                 <Button onClick={handleExport} className="px-8 py-3.5 bg-white text-slate-900 border-2 border-slate-200 hover:bg-slate-900 hover:text-white hover:border-slate-900 shadow-xl shadow-slate-100 transition-all font-black text-xs uppercase tracking-widest active:scale-[0.98]">
@@ -171,7 +199,9 @@ export default function EventRegistrations() {
                                     </td>
                                 </tr>
                             ) : (
-                                registrations.map((reg) => (
+                                registrations.map((reg) => {
+                                  const regStatus = getRegStatus(reg);
+                                  return (
                                     <tr key={reg._id} className="hover:bg-slate-50/50 transition-all duration-300 group">
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
@@ -207,13 +237,14 @@ export default function EventRegistrations() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm shadow-emerald-50">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                Verified
+                                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-sm ${regStatus.wrap}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${regStatus.dot}`} />
+                                                {regStatus.label}
                                             </div>
                                         </td>
                                     </tr>
-                                ))
+                                  );
+                                })
                             )}
                         </tbody>
                     </table>

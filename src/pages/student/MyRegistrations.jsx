@@ -18,19 +18,32 @@ import {
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
+import PayPalPayment from '../../components/common/PayPalPayment';
 import { ROUTES } from '../../utils/constants';
 import { registrationsApi } from '../../api/endpoints';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
+import QRCode from 'qrcode';
 
 export default function MyRegistrations() {
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [filter, setFilter] = useState('all');
-  
+  const { user } = useAuth();
+  const { addToast } = useToast();
+  const confirm = useConfirm();
+
   // Ticket Modal State
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [selectedReg, setSelectedReg] = useState(null);
+  const [qrDataUrl, setQrDataUrl] = useState('');
   const ticketRef = useRef(null);
+
+  // Payment Modal State (for unpaid / PENDING registrations)
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [payingReg, setPayingReg] = useState(null);
 
   useEffect(() => {
     const fetchRegistrations = async () => {
@@ -85,9 +98,61 @@ export default function MyRegistrations() {
     }) : '—';
   };
 
-  const handleViewTicket = (reg) => {
+  const handleViewTicket = async (reg) => {
     setSelectedReg(reg);
+    setQrDataUrl('');
     setShowTicketModal(true);
+    try {
+      // Encode the same payload the backend embeds in the confirmation email.
+      const payload = JSON.stringify({
+        registrationId: reg._id,
+        event: reg.event?.title,
+        user: user?.name,
+      });
+      const url = await QRCode.toDataURL(payload, { width: 256, margin: 1 });
+      setQrDataUrl(url);
+    } catch (err) {
+      console.error('Failed to generate ticket QR code:', err);
+      setQrDataUrl('');
+    }
+  };
+
+  const handlePayNow = (reg) => {
+    setPayingReg(reg);
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    setRegistrations((prev) =>
+      prev.map((r) =>
+        r._id === payingReg?._id
+          ? { ...r, status: 'REGISTERED', paymentStatus: 'PAID' }
+          : r
+      )
+    );
+    setShowPaymentModal(false);
+    setPayingReg(null);
+  };
+
+  const handleCancelRegistration = async (reg) => {
+    const ok = await confirm({
+      title: 'Cancel registration?',
+      message: `Cancel your registration for "${reg.event?.title}"? This frees up your seat and can't be undone.`,
+      confirmLabel: 'Cancel registration',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      const res = await registrationsApi.cancel(reg._id);
+      if (res.data?.success) {
+        setRegistrations((prev) =>
+          prev.map((r) => (r._id === reg._id ? { ...r, status: 'CANCELLED' } : r))
+        );
+        addToast({ type: 'success', title: 'Registration cancelled', message: 'Your registration has been cancelled.' });
+      }
+    } catch (err) {
+      addToast({ type: 'error', title: 'Cancel failed', message: err.response?.data?.message || 'Could not cancel the registration.' });
+    }
   };
 
   const downloadTicket = async () => {
@@ -117,7 +182,7 @@ export default function MyRegistrations() {
       pdf.save(`ticket-${selectedReg.event?.title}-${selectedReg._id.slice(-6)}.pdf`);
     } catch (err) {
       console.error('Error generating PDF:', err);
-      alert('Failed to download ticket. Please try again.');
+      addToast({ type: 'error', title: 'Download failed', message: 'Failed to download ticket. Please try again.' });
     } finally {
       setDownloading(false);
     }
@@ -149,19 +214,19 @@ export default function MyRegistrations() {
         <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
           <p className="text-emerald-600 font-bold text-xs uppercase tracking-wider mb-1">Confirmed</p>
           <p className="text-3xl font-black text-emerald-900">
-            {registrations.filter(r => r.status !== 'CANCELLED' && r.event?.status !== 'CANCELLED').length}
+            {registrations.filter(r => r.status === 'REGISTERED' && r.event?.status !== 'CANCELLED').length}
           </p>
         </div>
         <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100">
           <p className="text-amber-600 font-bold text-xs uppercase tracking-wider mb-1">Upcoming</p>
           <p className="text-3xl font-black text-amber-900">
-            {registrations.filter(r => new Date(r.event?.startDate) >= new Date() && r.status !== 'CANCELLED' && r.event?.status !== 'CANCELLED').length}
+            {registrations.filter(r => new Date(r.event?.startDate) >= new Date() && r.status === 'REGISTERED' && r.event?.status !== 'CANCELLED').length}
           </p>
         </div>
         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
           <p className="text-slate-500 font-bold text-xs uppercase tracking-wider mb-1">Completed</p>
           <p className="text-3xl font-black text-slate-700">
-            {registrations.filter(r => new Date(r.event?.startDate) < new Date() && r.status !== 'CANCELLED' && r.event?.status !== 'CANCELLED').length}
+            {registrations.filter(r => new Date(r.event?.startDate) < new Date() && r.status === 'REGISTERED' && r.event?.status !== 'CANCELLED').length}
           </p>
         </div>
       </div>
@@ -237,6 +302,14 @@ export default function MyRegistrations() {
                       <span className="bg-red-100 text-red-700 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
                         Event Cancelled
                       </span>
+                    ) : reg.status === 'PENDING' ? (
+                      <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
+                        Payment Pending
+                      </span>
+                    ) : reg.status === 'FAILED' ? (
+                      <span className="bg-red-100 text-red-700 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
+                        Payment Failed
+                      </span>
                     ) : new Date(reg.event?.startDate) < new Date() ? (
                       <span className="bg-slate-100 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
                         Completed
@@ -272,13 +345,29 @@ export default function MyRegistrations() {
                       View Details
                     </button>
                   </Link>
-                  {reg.status !== 'CANCELLED' && reg.event?.status !== 'CANCELLED' && new Date(reg.event?.startDate) >= new Date() && (
-                    <button 
+                  {reg.status === 'PENDING' && reg.event?.status !== 'CANCELLED' && (
+                    <button
+                      onClick={() => handlePayNow(reg)}
+                      className="w-full whitespace-nowrap px-4 py-2 bg-amber-600 text-white text-sm font-bold rounded-xl hover:bg-amber-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                      Complete Payment
+                    </button>
+                  )}
+                  {reg.status === 'REGISTERED' && reg.event?.status !== 'CANCELLED' && new Date(reg.event?.startDate) >= new Date() && (
+                    <button
                       onClick={() => handleViewTicket(reg)}
                       className="w-full whitespace-nowrap px-4 py-2 bg-white text-slate-600 border border-slate-200 text-sm font-bold rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
                     >
                       <Ticket className="w-4 h-4" />
                       Ticket
+                    </button>
+                  )}
+                  {(reg.status === 'REGISTERED' || reg.status === 'PENDING') && reg.event?.status !== 'CANCELLED' && new Date(reg.event?.startDate) >= new Date() && (
+                    <button
+                      onClick={() => handleCancelRegistration(reg)}
+                      className="w-full whitespace-nowrap px-4 py-2 bg-white text-red-600 border border-red-200 text-sm font-bold rounded-xl hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                    >
+                      Cancel
                     </button>
                   )}
                 </div>
@@ -327,12 +416,20 @@ export default function MyRegistrations() {
                 </div>
               </div>
 
-              {/* QR Code Placeholder */}
+              {/* QR Code */}
               <div className="flex flex-col items-center justify-center py-4 bg-white rounded-xl border border-slate-100 shadow-sm">
-                <div className="w-32 h-32 bg-slate-50 rounded-lg flex items-center justify-center border border-slate-100 mb-2">
-                  <Ticket className="w-12 h-12 text-slate-200" />
-                </div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">#{selectedReg._id.slice(-12).toUpperCase()}</p>
+                {qrDataUrl ? (
+                  <img
+                    src={qrDataUrl}
+                    alt="Ticket QR code"
+                    className="w-32 h-32 rounded-lg"
+                  />
+                ) : (
+                  <div className="w-32 h-32 bg-slate-50 rounded-lg flex items-center justify-center border border-slate-100">
+                    <span className="w-6 h-6 border-2 border-slate-200 border-t-slate-400 rounded-full animate-spin" />
+                  </div>
+                )}
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">#{selectedReg._id.slice(-12).toUpperCase()}</p>
               </div>
 
               {/* Decorative Circles */}
@@ -367,6 +464,26 @@ export default function MyRegistrations() {
                 )}
               </Button>
             </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Payment Modal — complete payment for a PENDING registration */}
+      <Modal
+        isOpen={showPaymentModal}
+        onClose={() => { setShowPaymentModal(false); setPayingReg(null); }}
+        title="Complete Payment"
+      >
+        {payingReg && (
+          <div className="space-y-4">
+            <p className="text-slate-600">
+              Complete the payment for <strong>{payingReg.event?.title}</strong> to confirm your registration.
+            </p>
+            <PayPalPayment
+              registrationId={payingReg._id}
+              onApprove={handlePaymentSuccess}
+              onError={(msg) => addToast({ type: 'error', title: 'Payment failed', message: msg || 'Payment failed. Please try again.' })}
+            />
           </div>
         )}
       </Modal>

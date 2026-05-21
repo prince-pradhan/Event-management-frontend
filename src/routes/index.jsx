@@ -22,7 +22,6 @@ import Notifications from '../pages/student/Notifications';
 import NotificationDetail from '../pages/student/NotificationDetail';
 
 import AdminLayout from '../components/layout/AdminLayout';
-import AdminHome from '../pages/admin/AdminHome';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminEvents from '../pages/admin/events/AdminEvents';
 import AdminEventDetail from '../pages/admin/events/AdminEventDetail';

@@ -13,6 +13,9 @@ export const notificationApi = {
     /** Admin: create a custom notification */
     create: (data) => apiClient.post('/notifications', data),
 
+    /** Admin: edit an existing notification */
+    update: (id, data) => apiClient.put(`/notifications/${id}`, data),
+
     /** Admin: get all notifications */
     getAll: (params) => apiClient.get('/notifications', { params }),
 

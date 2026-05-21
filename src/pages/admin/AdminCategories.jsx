@@ -3,8 +3,12 @@ import { Link } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { categoriesApi } from '../../api/endpoints';
+import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export default function AdminCategories() {
+    const { addToast } = useToast();
+    const confirm = useConfirm();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -57,22 +61,30 @@ export default function AdminCategories() {
             }
             fetchCategories();
             handleCloseModal();
+            addToast({ type: 'success', title: isEditing ? 'Category updated' : 'Category created', message: `"${currentCategory.name}" has been saved.` });
         } catch (err) {
             console.error('Error saving category:', err);
-            alert('Failed to save category');
+            addToast({ type: 'error', title: 'Save failed', message: err.response?.data?.message || 'Could not save the category.' });
         } finally {
             setFormLoading(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this category?')) return;
+        const ok = await confirm({
+            title: 'Delete category?',
+            message: 'Are you sure you want to delete this category?',
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!ok) return;
         try {
             await categoriesApi.delete(id);
             fetchCategories();
+            addToast({ type: 'success', title: 'Category deleted', message: 'The category has been removed.' });
         } catch (err) {
             console.error('Error deleting category:', err);
-            alert('Failed to delete category');
+            addToast({ type: 'error', title: 'Delete failed', message: err.response?.data?.message || 'Could not delete the category.' });
         }
     };
 
@@ -139,6 +151,12 @@ export default function AdminCategories() {
                                                     className="text-xs font-bold text-primary-600 hover:text-primary-700 uppercase tracking-tight"
                                                 >
                                                     Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(category._id)}
+                                                    className="text-xs font-bold text-red-600 hover:text-red-700 uppercase tracking-tight"
+                                                >
+                                                    Delete
                                                 </button>
                                             </div>
                                         </td>

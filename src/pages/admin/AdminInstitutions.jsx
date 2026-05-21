@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { institutionsApi } from '../../api/endpoints';
 import { INSTITUTION_STATUS } from '../../utils/constants';
 import { useNotifications } from '../../context/NotificationContext';
+import { useToast } from '../../context/ToastContext';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import { 
@@ -23,6 +24,7 @@ import {
 
 export default function AdminInstitutions() {
   const { fetchPendingInstitutions } = useNotifications();
+  const { addToast } = useToast();
   const [institutions, setInstitutions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -73,10 +75,10 @@ export default function AdminInstitutions() {
 
   const handleUpdateStatus = async (id, status) => {
     if (status === INSTITUTION_STATUS.REJECTED && !verificationNotes.trim()) {
-      alert('Please provide a reason for rejection in the Verification Notes field.');
+      addToast({ type: 'warning', title: 'Reason required', message: 'Please provide a reason for rejection in the Verification Notes field.' });
       return;
     }
-    
+
     setActionLoading(id);
     try {
       const res = await institutionsApi.updateStatus(id, status, verificationNotes);
@@ -89,9 +91,14 @@ export default function AdminInstitutions() {
         if (fetchPendingInstitutions) {
           fetchPendingInstitutions();
         }
+        addToast({
+          type: 'success',
+          title: status === INSTITUTION_STATUS.VERIFIED ? 'Institution verified' : 'Institution updated',
+          message: `The institution application has been ${status === INSTITUTION_STATUS.VERIFIED ? 'verified' : 'updated'}.`,
+        });
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update status');
+      addToast({ type: 'error', title: 'Update failed', message: err.response?.data?.message || 'Failed to update status' });
     } finally {
       setActionLoading(null);
     }

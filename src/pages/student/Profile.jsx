@@ -109,7 +109,11 @@ export default function StudentProfile() {
               
               <div className="flex gap-2 mt-4">
                 <span className="px-3 py-1 bg-primary-50 text-primary-700 text-xs font-bold uppercase tracking-wider rounded-full">
-                  {user?.role === 'ADMIN' ? 'Admin' : 'Student'}
+                  {user?.role === 'INSTITUTION_ADMIN'
+                    ? 'Institution Admin'
+                    : user?.role === 'STUDENT'
+                      ? 'Student'
+                      : 'Admin'}
                 </span>
                 {user?.isVerified && (
                   <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wider rounded-full flex items-center gap-1">

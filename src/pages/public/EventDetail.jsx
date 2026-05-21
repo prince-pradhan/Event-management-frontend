@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { eventsApi, reviewApi } from '../../api/endpoints';
 import apiClient from '../../api/apiClient';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
@@ -16,6 +18,8 @@ export default function EventDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuth();
+    const { addToast } = useToast();
+    const confirm = useConfirm();
 
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -94,19 +98,22 @@ export default function EventDetail() {
         }
     }, [id, isAuthenticated]);
 
-    const handleRegisterClick = () => {
+    const handleRegisterClick = async () => {
         if (!isAuthenticated) {
             navigate(ROUTES.LOGIN, { state: { from: `/events/${id}` } });
             return;
         }
 
-        const confirmMsg = event.isFree 
-            ? `Are you sure you want to register for ${event.title}? It's a free event.`
-            : `Are you sure you want to register for ${event.title}? This is a paid event (${event.price || '0'}). You will need to complete payment after this step.`;
+        const confirmMsg = event.isFree
+            ? `Register for "${event.title}"? It's a free event.`
+            : `Register for "${event.title}"? This is a paid event ($${event.price || '0'}) — you'll complete payment after this step.`;
 
-        if (!window.confirm(confirmMsg)) {
-            return;
-        }
+        const ok = await confirm({
+            title: 'Confirm registration',
+            message: confirmMsg,
+            confirmLabel: 'Register',
+        });
+        if (!ok) return;
 
         // If event has custom fields, show modal
         if (event.registrationFields && event.registrationFields.length > 0) {
@@ -188,6 +195,29 @@ export default function EventDetail() {
         }
     };
 
+    const handleReviewDelete = async () => {
+        if (!userReview) return;
+        const ok = await confirm({
+            title: 'Delete review?',
+            message: 'Are you sure you want to delete your review?',
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!ok) return;
+        try {
+            const res = await reviewApi.deleteReview(userReview._id);
+            if (res.data.success) {
+                setReviews(reviews.filter(r => r._id !== userReview._id));
+                setUserReview(null);
+                setShowReviewForm(false);
+                addToast({ type: 'success', title: 'Review deleted', message: 'Your review has been removed.' });
+            }
+        } catch (err) {
+            console.error('Failed to delete review', err);
+            addToast({ type: 'error', title: 'Delete failed', message: err.response?.data?.message || 'Failed to delete review' });
+        }
+    };
+
     if (loading) {
         return (
             <div className="container-app py-20 flex justify-center">
@@ -210,30 +240,11 @@ export default function EventDetail() {
 
     const categoryLabel = getCategoryLabel(event.category);
 
-    // Format the event date range. If the event spans a single day, show the date once and
-    // the start/end times. If it spans multiple days, render the full datetime on each side.
-    const formatEventDateRange = (startISO, endISO) => {
-        if (!startISO) return '—';
-        const start = new Date(startISO);
-        const end = endISO ? new Date(endISO) : null;
-        const dateOpts = { dateStyle: 'long' };
-        const timeOpts = { timeStyle: 'short' };
-        const fullOpts = { dateStyle: 'long', timeStyle: 'short' };
-
-        if (!end) {
-            return start.toLocaleString('en-IN', fullOpts);
-        }
-        const sameDay =
-            start.getFullYear() === end.getFullYear() &&
-            start.getMonth() === end.getMonth() &&
-            start.getDate() === end.getDate();
-
-        if (sameDay) {
-            return `${start.toLocaleDateString('en-IN', dateOpts)}, ${start.toLocaleTimeString('en-IN', timeOpts)} – ${end.toLocaleTimeString('en-IN', timeOpts)}`;
-        }
-        return `${start.toLocaleString('en-IN', fullOpts)} – ${end.toLocaleString('en-IN', fullOpts)}`;
-    };
-    const eventDateLabel = formatEventDateRange(event.startDate, event.endDate);
+    // Full date + time for both ends of the event, shown explicitly so the end date is always visible.
+    const formatDateTime = (iso) =>
+        iso ? new Date(iso).toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' }) : '—';
+    const startLabel = formatDateTime(event.startDate);
+    const endLabel = formatDateTime(event.endDate);
     const organizerName = event.organizer?.name || (typeof event.organizer === 'object' ? event.organizer?.email : '—');
     const statusLabel = event.status ? EVENT_STATUS[event.status] || event.status : null;
 
@@ -399,7 +410,8 @@ export default function EventDetail() {
                     </div>
                     <h1 className="mt-2 text-3xl sm:text-4xl font-bold text-slate-900">{event.title}</h1>
                     <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-600">
-                        <span>📅 {eventDateLabel}</span>
+                        <span>📅 Starts: {startLabel}</span>
+                        <span>🏁 Ends: {endLabel}</span>
                         {event.location?.venue && <span>📍 {event.location.venue}</span>}
                         {event.location?.address && <span>{event.location.address}</span>}
                         {event.location?.city && <span>{event.location.city}</span>}
@@ -482,7 +494,10 @@ export default function EventDetail() {
                             <div>
                                 <h3 className="text-lg font-semibold">Your Review</h3>
                                 <ReviewList reviews={[userReview]} />
-                                <Button onClick={() => setShowReviewForm(true)} className="mt-4">Edit Your Review</Button>
+                                <div className="mt-4 flex gap-3">
+                                    <Button onClick={() => setShowReviewForm(true)}>Edit Your Review</Button>
+                                    <Button variant="danger" onClick={handleReviewDelete}>Delete Review</Button>
+                                </div>
                             </div>
                         ) : (
                             <ReviewForm
